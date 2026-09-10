@@ -1,6 +1,18 @@
 # =========================================================================================
-# 🎓 SENAI-SP — APERFEIÇOAMENTO PROFISSIONAL: PROGRAMAÇÃO EM IA GENERATIVA (40H)
-# 📖 GUIA PRÁTICO & APLICATIVO DIDÁTICO UNIFICADO: DA TEORIA AO STREAMLIT
+# 🎓 SENAI-SP — APERFEIÇOAMENTO PROFISSIONAL EM INTELIGÊNCIA ARTIFICIAL (40H)
+# 📖 IA DESCOMPLICADA: DO BÁSICO AO STREAMLIT COM EXEMPLOS DO COTIDIANO
+# 
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Marcelo Maffeis — SENAI-SP
+# 
+# TERMOS DA LICENÇA MIT & AVISO LEGAL:
+# A permissão é concedida, gratuitamente, a qualquer pessoa que obtenha uma cópia deste
+# software e dos arquivos de documentação associados, para utilizar, copiar, modificar,
+# mesclar, publicar, distribuir e/ou sublicenciar, para fins educacionais e de estudo.
+# 
+# O SOFTWARE É FORNECIDO "COMO ESTÁ", SEM GARANTIA DE QUALQUER TIPO. EM NENHUM CASO OS
+# AUTORES OU TITULARES DE DIREITOS AUTORAIS SERÃO RESPONSÁVEIS POR QUALQUER RECLAMAÇÃO,
+# DANOS OU OUTRA RESPONSABILIDADE DECORRENTE DO USO DESTE CÓDIGO.
 # =========================================================================================
 
 """
@@ -70,13 +82,27 @@ from openai import OpenAI
 st.set_page_config(page_title="IA Descomplicada - SENAI", page_icon="💡", layout="wide")
 
 # =========================================================================================
+# FUNÇÃO DO RODAPÉ INSTITUCIONAL (LICENÇA MIT & SENAI-SP)
+# =========================================================================================
+def exibir_rodape_educacional():
+    st.markdown("---")
+    st.markdown("""
+    <div style='text-align: center; color: #64748B; font-size: 0.85em; padding: 10px;'>
+        <p><b>🎓 Projeto Educacional de Código Aberto (Open Source) — Licença MIT</b><br>
+        Desenvolvido para o curso de <i>Aperfeiçoamento Profissional em Inteligência Artificial</i> — <b>SENAI-SP</b>.</p>
+        <p>⚠️ <b>Aviso Legal / Disclaimer:</b> Este aplicativo tem finalidade estritamente pedagógica e acadêmica para 
+        ensino prático e desmistificação da Inteligência Artificial em sala de aula.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+# =========================================================================================
 # MENU LATERAL COM TODOS OS MÓDULOS DA EMENTA SENAI
 # =========================================================================================
 st.sidebar.title("💡 IA Descomplicada")
 st.sidebar.caption("SENAI-SP • Exemplos Práticos do Cotidiano")
 
 menu = st.sidebar.radio(
-    "Selecione a Tecnologia de IA:",
+    "Selecione o Módulo de IA:",
     [
         "🏠 Início: O Kit de Bibliotecas",
         "🍦 1. Regressão (Vendas de Sorvete)",
@@ -90,7 +116,8 @@ menu = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-st.sidebar.caption("📜 Material Didático Aberto — Licença MIT")
+st.sidebar.caption("📜 Código Aberto sob Licença MIT")
+st.sidebar.caption("SENAI-SP — Formação Inicial e Continuada")
 
 # =========================================================================================
 # MÓDULO 0: APRESENTAÇÃO DAS BIBLIOTECAS
@@ -111,6 +138,7 @@ if menu == "🏠 Início: O Kit de Bibliotecas":
     * **Streamlit:** A mágica que transforma nosso código neste painel interativo!
     """)
     st.success("👈 Escolha qualquer exemplo no menu lateral para ver o código e testar a IA ao vivo!")
+    exibir_rodape_educacional()
 
 # =========================================================================================
 # MÓDULO 1: REGRESSÃO LINEAR (SORVETERIA)
@@ -150,6 +178,7 @@ elif menu == "🍦 1. Regressão (Vendas de Sorvete)":
     df_graf = pd.DataFrame({'Temperatura': [18, 22, 26, 30, 35], 'Vendas': y_vendas})
     fig = px.scatter(df_graf, x='Temperatura', y='Vendas', title="Relação Matemática: Calor x Vendas", trendline="ols")
     st.plotly_chart(fig, use_container_width=True)
+    exibir_rodape_educacional()
 
 # =========================================================================================
 # MÓDULO 2: CLASSIFICAÇÃO (SEPARADOR DE FRUTAS)
@@ -191,6 +220,7 @@ elif menu == "🍎 2. Classificação (Separador de Frutas)":
         st.success("🍎 **Resultado da IA: É UMA MAÇÃ!** (Encaminhar para a caixa de maçãs)")
     else:
         st.warning("🍊 **Resultado da IA: É UMA LARANJA!** (Encaminhar para a caixa de laranjas)")
+    exibir_rodape_educacional()
 
 # =========================================================================================
 # MÓDULO 3: CLUSTERIZAÇÃO K-MEANS (CLIENTES DO MERCADO)
@@ -222,6 +252,7 @@ elif menu == "🛒 3. Clusterização (Clientes do Mercado)":
     st.dataframe(dados_mercado[['Cliente', 'Idade', 'Gasto_Mensal_R$', 'Perfil_Descoberto']], use_container_width=True)
     fig_cl = px.scatter(dados_mercado, x='Idade', y='Gasto_Mensal_R$', color='Perfil_Descoberto', text='Cliente', size_max=20, title="Mapa de Grupos Descobertos pela IA")
     st.plotly_chart(fig_cl, use_container_width=True)
+    exibir_rodape_educacional()
 
 # =========================================================================================
 # MÓDULO 4: DEEP LEARNING (NOTA DO ALUNO)
@@ -256,6 +287,7 @@ elif menu == "🎓 4. Deep Learning (Previsão de Notas)":
     nota_estimada = max(0.0, min(10.0, nota_estimada))
     
     st.metric("Nota Final Estimada pela Rede Neural", f"{nota_estimada:.1f} / 10.0")
+    exibir_rodape_educacional()
 
 # =========================================================================================
 # MÓDULO 5: PLN / SENTIMENTOS (AVALIAÇÕES IFOOD)
@@ -279,8 +311,8 @@ elif menu == "🍔 5. PLN (Avaliações do iFood)":
     comentario = st.text_area("Digite uma avaliação de pedido:", "A pizza estava uma delícia, quentinha e a entrega foi muito rápida!")
     
     tokens = comentario.lower().replace('.', ' ').replace('!', ' ').split()
-    pos = [p for p in tokens if p in palavras_positivas]
-    neg = [p for p in tokens if p in palavras_negativas]
+    pos = [p for p in palavras_positivas if p in tokens]
+    neg = [p for p in palavras_negativas if p in tokens]
     
     col_p1, col_p2 = st.columns(2)
     col_p1.metric("👍 Elogios Detectados", len(pos))
@@ -292,6 +324,7 @@ elif menu == "🍔 5. PLN (Avaliações do iFood)":
         st.error(f"🔴 **CLIENTE INSATISFEITO!** Problemas encontrados: `{neg}`")
     else:
         st.warning("🟡 **AVALIAÇÃO NEUTRA / INFORMATIVA**")
+    exibir_rodape_educacional()
 
 # =========================================================================================
 # MÓDULO 6: VISÃO COMPUTACIONAL (MATRIZ DE PIXELS)
@@ -326,6 +359,7 @@ elif menu == "📸 6. Visão Computacional (Matriz de Imagem)":
         st.write("🔢 **Como o computador enxerga a mesma foto (Matriz Numérica):**")
         st.dataframe(pd.DataFrame(foto_matriz), use_container_width=True)
         st.info(f"💡 Brilho médio dos pixels calculados pelo NumPy: **{foto_matriz.mean():.1f}**")
+    exibir_rodape_educacional()
 
 # =========================================================================================
 # MÓDULO 7: IA GENERATIVA & RAG (CHEF DA GELADEIRA)
@@ -358,3 +392,4 @@ elif menu == "🍳 7. IA Generativa (Chef da Geladeira)":
         
         *💡 Aproveitamento 100% dos seus ingredientes sem desperdício!*
         """)
+    exibir_rodape_educacional()
