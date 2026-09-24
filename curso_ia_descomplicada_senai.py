@@ -315,12 +315,17 @@ elif menu == "🍎 2. Classificação (Separador de Frutas)":
     st.title("🍎 Módulo 2: Classificação com Árvores de Decisão")
     st.caption("Biblioteca usada: [`sklearn.tree.DecisionTreeClassifier`](https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html)")
 
-    # 1. Base histórica de frutas (X = [Peso em gramas, Textura da Casca: 0=Lisa, 1=Rugosa])
+    # 1. Base histórica realista com 3 frutas na esteira:
+    # Características (X): [Peso em gramas, Textura da Casca: 0=Lisa, 1=Rugosa]
     X_frutas = [
-        [130, 0], [140, 0], [145, 0], [150, 0],  # Maçãs (leves e lisas)
-        [185, 1], [195, 1], [210, 1], [225, 1]   # Laranjas (mais pesadas e rugosas)
+        [120, 0], [140, 0], [160, 0], [180, 0], [210, 0],  # Maçãs (sempre casca lisa, 120g a 210g)
+        [85, 1],  [100, 1], [115, 1], [130, 1],            # Mexericas/Tangerinas (casca rugosa, leves: 85g a 130g)
+        [160, 1], [180, 1], [200, 1], [230, 1]             # Laranjas (casca rugosa, pesadas: 160g a 230g)
     ]
-    y_rotulos = [0, 0, 0, 0, 1, 1, 1, 1] # 0 = Maçã, 1 = Laranja
+    # Rótulos (y): 0 = Maçã, 1 = Mexerica / Tangerina, 2 = Laranja
+    y_rotulos = [0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2]
+    nomes_frutas = {0: "🍎 Maçã", 1: "🍊 Mexerica (Tangerina)", 2: "🍊 Laranja"}
+    caixas_destino = {0: "Caixa A (Maçãs)", 1: "Caixa B (Mexericas)", 2: "Caixa C (Laranjas)"}
 
     # 2. Treinando o Modelo
     ia_frutas = DecisionTreeClassifier(random_state=42)
@@ -338,9 +343,12 @@ elif menu == "🍎 2. Classificação (Separador de Frutas)":
 
         col1, col2 = st.columns(2)
         with col1:
-            peso_input = st.slider("⚖️ Peso na Balança Digital (gramas):", 110, 240, 140)
+            peso_input = st.slider("⚖️ Peso na Balança Digital (gramas):", 80, 240, 140)
         with col2:
-            casca_input = st.selectbox("🖐️ Textura sentida pelo Sensor de Toque:", ["Lisa (Casca de Maçã)", "Rugosa (Casca de Laranja)"])
+            casca_input = st.selectbox(
+                "🖐️ Textura sentida pelo Sensor de Toque:",
+                ["Lisa (Sem rugosidades)", "Rugosa (Com porosidades/ondulações)"]
+            )
 
         casca_num = 1 if "Rugosa" in casca_input else 0
         previsao_fruta = ia_frutas.predict([[peso_input, casca_num]])[0]
@@ -354,30 +362,32 @@ elif menu == "🍎 2. Classificação (Separador de Frutas)":
         c_res3.metric("🎯 Confiança da IA", f"{confianca:.0f}%")
 
         if previsao_fruta == 0:
-            st.success("🍎 **DECISÃO DA IA: É UMA MAÇÃ!** ➡️ *Comando enviado para a esteira: Empurrar para a Caixa A (Maçãs)*")
+            st.success(f"🍎 **DECISÃO DA IA: É UMA MAÇÃ!** ➡️ *Destino da Esteira: Empurrar para {caixas_destino[0]}*")
+        elif previsao_fruta == 1:
+            st.warning(f"🍊 **DECISÃO DA IA: É UMA MEXERICA / TANGERINA!** (Casca rugosa e peso leve) ➡️ *Destino: {caixas_destino[1]}*")
         else:
-            st.warning("🍊 **DECISÃO DA IA: É UMA LARANJA!** ➡️ *Comando enviado para a esteira: Empurrar para a Caixa B (Laranjas)*")
+            st.info(f"🍊 **DECISÃO DA IA: É UMA LARANJA!** (Casca rugosa e peso elevado) ➡️ *Destino: {caixas_destino[2]}*")
 
         # Gráfico visual das frutas e a nova fruta
         df_historico_frutas = pd.DataFrame({
-            'Peso (g)': [130, 140, 145, 150, 185, 195, 210, 225],
-            'Casca': ['Lisa', 'Lisa', 'Lisa', 'Lisa', 'Rugosa', 'Rugosa', 'Rugosa', 'Rugosa'],
-            'Fruta': ['Maçã', 'Maçã', 'Maçã', 'Maçã', 'Laranja', 'Laranja', 'Laranja', 'Laranja']
+            'Peso (g)': [120, 140, 160, 180, 210, 85, 100, 115, 130, 160, 180, 200, 230],
+            'Casca': ['Lisa', 'Lisa', 'Lisa', 'Lisa', 'Lisa', 'Rugosa', 'Rugosa', 'Rugosa', 'Rugosa', 'Rugosa', 'Rugosa', 'Rugosa', 'Rugosa'],
+            'Fruta': ['Maçã', 'Maçã', 'Maçã', 'Maçã', 'Maçã', 'Mexerica', 'Mexerica', 'Mexerica', 'Mexerica', 'Laranja', 'Laranja', 'Laranja', 'Laranja']
         })
         fig_frutas = px.scatter(
             df_historico_frutas,
             x='Peso (g)',
             y='Casca',
             color='Fruta',
-            title="Distribuição das Frutas no Espaço de Decisão",
-            color_discrete_map={'Maçã': '#EF4444', 'Laranja': '#F97316'}
+            title="Distribuição das Frutas no Espaço de Decisão dos Sensores",
+            color_discrete_map={'Maçã': '#EF4444', 'Mexerica': '#F59E0B', 'Laranja': '#F97316'}
         )
         fig_frutas.add_scatter(
             x=[peso_input],
             y=['Rugosa' if casca_num == 1 else 'Lisa'],
             mode='markers',
             marker=dict(size=16, color='blue', symbol='star'),
-            name=f'Fruta Atual ({peso_input}g)'
+            name=f'Fruta Atual ({peso_input}g, {"Rugosa" if casca_num == 1 else "Lisa"})'
         )
         st.plotly_chart(fig_frutas, use_container_width=True)
 
@@ -385,9 +395,12 @@ elif menu == "🍎 2. Classificação (Separador de Frutas)":
         st.subheader("📖 Como a Classificação Funciona? (Sem Complicação)")
         st.markdown("""
         > 💡 **Analogia da Vida Real:**  
-        > Imagine um funcionário novo no sacolão ou na linha de fábrica do SENAI. No primeiro dia, ele aprende:  
-        > *"Se a fruta for levinha e a casca for lisa como cera, é maçã. Se for pesada e cheia de furinhos/rugosa, é laranja"*.  
-        > A **Classificação** é quando o computador aprende a fazer **perguntas de 'SE... ENTÃO'** para separar coisas em gavetas fechadas!
+        > Imagine um operador no entreposto de frutas ou na linha de separação industrial do SENAI.  
+        > 1. Ele toca na fruta: **"A casca é lisa?"** ➡️ Se sim, é **Maçã** (maçãs não têm casca rugosa!).  
+        > 2. Se a casca for **Rugosa**, ele sabe que é uma fruta cítrica, mas precisa olhar a balança:  
+        >    * Se for **leve (menos de 145g)** ➡️ É uma **Mexerica / Tangerina**!  
+        >    * Se for **pesada (mais de 145g)** ➡️ É uma **Laranja**!  
+        > A **Árvore de Decisão** é exatamente essa sequência lógica de perguntas que a máquina aprende a fazer!
         """)
         st.markdown("---")
         st.markdown("### 🧩 Os 4 Passos Fundamentais da Classificação:")
@@ -396,30 +409,30 @@ elif menu == "🍎 2. Classificação (Separador de Frutas)":
         with c1:
             st.markdown("""
             #### 1️⃣ Separação dos Dados (X e y)
-            * **$X$ (Características / Features):** Informações medidas pelos sensores (Peso em gramas e Tipo de casca 0 ou 1).
-            * **$y$ (Classes / Rótulos):** O nome da gaveta onde o item deve cair (0 para Maçã ou 1 para Laranja).
-            * *Diferença para a Regressão:* Na Regressão prevemos um **número contínuo** (ex: 148 sorvetes). Na Classificação, escolhemos uma **categoria** (Maçã ou Laranja).
+            * **$X$ (Características / Sensores):** [Peso em gramas, Tipo de casca: 0=Lisa, 1=Rugosa].
+            * **$y$ (Classes / Rótulos):** 0 para Maçã, 1 para Mexerica e 2 para Laranja.
+            * *Por que precisamos dos dois sensores?* A textura separa maçãs de cítricos, e a balança separa mexericas de laranjas.
             """)
 
             st.markdown("""
             #### 2️⃣ Treinamento da Árvore (`.fit()`)
-            * A Árvore de Decisão analisa todos os exemplos e descobre o melhor ponto de corte:
-              * *Exemplo de regra aprendida:* **"O peso é maior que 165g?"**
-                * Se SIM ➡️ Provavelmente Laranja.
-                * Se NÃO ➡️ Provavelmente Maçã.
+            * A Árvore de Decisão analisa os dados e cria galhos lógicos perfeitos:
+              * *Pergunta 1:* A casca é lisa? Se SIM ➡️ **Maçã**.
+              * *Pergunta 2 (se casca for rugosa):* O peso é maior que 145g?  
+                * Se SIM ➡️ **Laranja**.  
+                * Se NÃO ➡️ **Mexerica**.
             """)
 
         with c2:
             st.markdown("""
             #### 3️⃣ Previsão / Teste em Tempo Real (`.predict()`)
             * Quando uma fruta inédita passa pela esteira, o sensor mede seus atributos.
-            * A IA percorre os galhos da árvore de decisão e devolve a resposta instantânea.
+            * A IA percorre o fluxograma em microssegundos e devolve a categoria exata.
             """)
 
             st.markdown("""
-            #### 4️⃣ Análise e Aplicação na Automação
-            * **Na Indústria 4.0:** Este algoritmo aciona braços robóticos ou pistões pneumáticos para separar peças com defeito de peças aprovadas sem intervenção humana!
-            * **Métrica:** Avaliamos a *Acurácia* (quantas frutas a máquina acertou em 100 tentativas).
+            #### 4️⃣ Aplicação na Indústria SENAI
+            * **Na Indústria 4.0:** Este algoritmo aciona braços robóticos ou pistões pneumáticos para separar produtos em caixas distintas na esteira, com 100% de precisão e sem cansaço humano!
             """)
 
     with aba_codigo:
@@ -427,10 +440,14 @@ elif menu == "🍎 2. Classificação (Separador de Frutas)":
         st.code("""
 # ETAPA 1: SEPARAÇÃO DOS DADOS DE TREINO
 # X: [Peso em gramas, Textura: 0=Lisa, 1=Rugosa]
-X = [[130, 0], [145, 0], [190, 1], [215, 1]]
+X = [
+    [140, 0], [170, 0],  # Maçãs (sempre lisas)
+    [100, 1], [120, 1],  # Mexericas (rugosas e leves)
+    [180, 1], [210, 1]   # Laranjas (rugosas e pesadas)
+]
 
-# y: Categorias (0 = Maçã, 1 = Laranja)
-y = [0, 0, 1, 1]
+# y: Categorias (0 = Maçã, 1 = Mexerica, 2 = Laranja)
+y = [0, 0, 1, 1, 2, 2]
 
 # ETAPA 2: CRIAÇÃO E TREINAMENTO DA ÁRVORE DE DECISÃO
 from sklearn.tree import DecisionTreeClassifier
@@ -438,21 +455,19 @@ from sklearn.tree import DecisionTreeClassifier
 # Criamos o modelo
 classificador = DecisionTreeClassifier()
 
-# Mandamos o modelo aprender as regras com os dados (.fit)
+# Mandamos o modelo aprender as regras (.fit)
 classificador.fit(X, y)
 
 # ETAPA 3: PREVENDO UMA NOVA FRUTA NA ESTEIRA
-# Chegou uma fruta de 142 gramas com casca lisa (0)
-nova_fruta = [[142, 0]]
+# Chegou uma fruta de 115g com casca rugosa (1)
+nova_fruta = [[115, 1]]
 resultado = classificador.predict(nova_fruta)
 
-# ETAPA 4: ANÁLISE E DECISÃO
-if resultado[0] == 0:
-    print("Resultado: Maçã (Encaminhar para a Caixa A)")
-else:
-    print("Resultado: Laranja (Encaminhar para a Caixa B)")
+# ETAPA 4: DECISÃO AUTOMATIZADA
+frutas = {0: "Maçã", 1: "Mexerica", 2: "Laranja"}
+print(f"Resultado: {frutas[resultado[0]]}")
         """, language="python")
-        st.info("💡 **Dica de Ouro:** A Árvore de Decisão é um dos modelos mais fáceis de explicar para Entendimento porque ela funciona exatamente como um fluxograma humano de perguntas!")
+        st.info("💡 **Dica de Ouro:** A Árvore de Decisão é o único modelo de IA clássica que consegue criar regras hierárquicas ('Se a casca for rugosa, então olhe o peso'), o que a torna perfeita para automação e robótica industrial!")
 
     exibir_rodape_educacional()
 
