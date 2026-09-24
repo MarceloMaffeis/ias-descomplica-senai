@@ -187,7 +187,7 @@ elif menu == "🍦 1. Regressão (Vendas de Sorvete)":
     # Navegação por Abas para facilitar a compreensão do aluno
     aba_simulador, aba_passos, aba_codigo = st.tabs([
         "🎮 Simulador Interativo & Gráfico",
-        "🧭 Os 4 Passos da IA (Para Leigos)",
+        "🧭 Os 4 Passos da IA (Para Entendimento)",
         "💻 Código Explicado Linha por Linha"
     ])
 
@@ -328,7 +328,7 @@ elif menu == "🍎 2. Classificação (Separador de Frutas)":
 
     aba_simulador, aba_passos, aba_codigo = st.tabs([
         "🎮 Simulador Interativo & Esteira",
-        "🧭 Os 4 Passos da IA (Para Leigos)",
+        "🧭 Os 4 Passos da IA (Para Entendimento)",
         "💻 Código Explicado Linha por Linha"
     ])
 
@@ -452,7 +452,7 @@ if resultado[0] == 0:
 else:
     print("Resultado: Laranja (Encaminhar para a Caixa B)")
         """, language="python")
-        st.info("💡 **Dica de Ouro:** A Árvore de Decisão é um dos modelos mais fáceis de explicar para leigos porque ela funciona exatamente como um fluxograma humano de perguntas!")
+        st.info("💡 **Dica de Ouro:** A Árvore de Decisão é um dos modelos mais fáceis de explicar para Entendimento porque ela funciona exatamente como um fluxograma humano de perguntas!")
 
     exibir_rodape_educacional()
 
@@ -484,7 +484,7 @@ elif menu == "🛒 3. Clusterização (Clientes do Mercado)":
 
     aba_simulador, aba_passos, aba_codigo = st.tabs([
         "🎮 Simulador Interativo & Grupos",
-        "🧭 Os 4 Passos da IA (Para Leigos)",
+        "🧭 Os 4 Passos da IA (Para Entendimento)",
         "💻 Código Explicado Linha por Linha"
     ])
 
@@ -621,7 +621,7 @@ elif menu == "🎓 4. Deep Learning (Previsão de Notas)":
 
     aba_simulador, aba_passos, aba_codigo = st.tabs([
         "🎮 Simulador Interativo & Neurônios",
-        "🧭 Os 4 Passos da IA (Para Leigos)",
+        "🧭 Os 4 Passos da IA (Para Entendimento)",
         "💻 Código Explicado Linha por Linha"
     ])
 
@@ -734,7 +734,7 @@ elif menu == "🍔 5. PLN (Avaliações do iFood)":
 
     aba_simulador, aba_passos, aba_codigo = st.tabs([
         "🎮 Simulador de Avaliações em Tempo Real",
-        "🧭 Os 4 Passos do PLN (Para Leigos)",
+        "🧭 Os 4 Passos do PLN (Para Entendimento)",
         "💻 Código Explicado Linha por Linha"
     ])
 
@@ -854,7 +854,7 @@ elif menu == "📸 6. Visão Computacional (Matriz de Imagem)":
 
     aba_simulador, aba_passos, aba_codigo = st.tabs([
         "🎮 Simulador de Pixels e Filtros",
-        "🧭 Os 4 Passos da Visão (Para Leigos)",
+        "🧭 Os 4 Passos da Visão (Para Entendimento)",
         "💻 Código Explicado Linha por Linha"
     ])
 
@@ -993,7 +993,7 @@ elif menu == "🍳 7. IA Generativa (Chef da Geladeira)":
 
     aba_simulador, aba_passos, aba_codigo = st.tabs([
         "🎮 Simulador do Chef IA & RAG",
-        "🧭 Os 4 Passos do RAG (Para Leigos)",
+        "🧭 Os 4 Passos do RAG (Para Entendimento)",
         "💻 Código Explicado Linha por Linha"
     ])
 
