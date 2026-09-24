@@ -52,10 +52,9 @@ outros engenheiros para que a gente não precise reinventar a matemática do zer
    • Para que serve: Converte fotos e vídeos em matrizes de números e aplica filtros para 
      achar bordas, trincas, rostos e objetos em tempo real.
 
-6. 🧠 OPENAI SDK (`from openai import OpenAI`):
-   • O que é em nível humano: É o "telefone que liga para o cérebro gigante do ChatGPT na nuvem".
-   • Para que serve: Envia perguntas e manuais para servidores potentes da Microsoft Azure / OpenAI 
-     e recebe a resposta em texto inteligente em segundos.
+6. 🧠 GOOGLE GEMINI API (`import requests`):
+   • O que é em nível humano: É o "telefone que liga para o supercérebro do Google Gemini na nuvem".
+   • Para que serve: Envia perguntas e manuais para a nuvem do Google e recebe respostas inteligentes em segundos, com chaves de API 100% gratuitas para estudantes e desenvolvedores!
 
 7. 🌐 STREAMLIT (`import streamlit as st`):
    • O que é em nível humano: O "tradutor de código para telas bonitas de internet".
@@ -68,13 +67,13 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import requests
 
 # Algoritmos do Scikit-Learn
 from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.cluster import KMeans
 from sklearn.neural_network import MLPRegressor
-from openai import OpenAI
 
 # =========================================================================================
 # CONFIGURAÇÃO VISUAL DA PÁGINA STREAMLIT
@@ -111,7 +110,7 @@ menu = st.sidebar.radio(
         "🎓 4. Deep Learning (Previsão de Notas)",
         "🍔 5. PLN (Avaliações do iFood)",
         "📸 6. Visão Computacional (Matriz de Imagem)",
-        "🍳 7. IA Generativa (Chef da Geladeira)"
+        "🍳 7. IA Generativa & RAG (Crie sua IA)"
     ]
 )
 
@@ -152,8 +151,8 @@ if menu == "🏠 Início: O Kit de Bibliotecas":
         * 👁️ [**OpenCV** (opencv.org)](https://opencv.org/)  
           *O que faz:* Os olhos da Inteligência Artificial. Transforma fotos e vídeos em matrizes numéricas para detectar objetos e rostos.
         
-        * 🧠 [**OpenAI API Docs** (platform.openai.com/docs)](https://platform.openai.com/docs/)  
-          *O que faz:* O cabo de conexão com grandes modelos generativos na nuvem (como o ChatGPT) para criar assistentes inteligentes.
+        * 🧠 [**Google AI Studio (Gemini)** (aistudio.google.com)](https://aistudio.google.com/)  
+          *O que faz:* O supercérebro do Google Gemini na nuvem. Oferece chaves de API 100% gratuitas para estudantes e desenvolvedores criarem assistentes inteligentes.
         
         * 🌐 [**Streamlit** (streamlit.io)](https://streamlit.io/)  
           *O que faz:* O construtor de telas mágicas. Converte scripts simples de Python neste painel web interativo sem precisar programar HTML ou CSS!
@@ -1049,187 +1048,276 @@ else:
     exibir_rodape_educacional()
 
 # =========================================================================================
-# MÓDULO 7: IA GENERATIVA & RAG (CHEF DA GELADEIRA) - DIDÁTICO E PASSO A PASSO
+# MÓDULO 7: IA GENERATIVA & RAG (CRIE SUA PRÓPRIA IA) - DIDÁTICO E PASSO A PASSO
 # • Item SENAI: 6. Modelos Personalizados -> 6.1 Arquitetura / 6.2 Conexão com Nuvem
 # • Teoria: Injeção de Contexto no Prompt (RAG) para criar respostas ancoradas em fatos.
 # =========================================================================================
-elif menu == "🍳 7. IA Generativa (Chef da Geladeira)":
-    st.title("🍳 Módulo 7: IA Generativa & RAG (Chef da Geladeira)")
-    st.caption("Conceito Central: Modelos de Linguagem (LLMs), Engenharia de Prompt e RAG (Geração Aumentada por Recuperação)")
+elif menu == "🍳 7. IA Generativa & RAG (Crie sua IA)":
+    st.title("🍳 Módulo 7: IA Generativa & RAG (Laboratório Criativo)")
+    st.caption("Conceito Central: Modelos Fundacionais (Google Gemini), Engenharia de Prompt e RAG (Geração Aumentada por Recuperação)")
 
     aba_simulador, aba_passos, aba_codigo = st.tabs([
-        "🎮 Simulador do Chef IA & RAG",
+        "🎮 Laboratório: Crie seu Assistente com RAG",
         "🧭 Os 4 Passos do RAG (Para Entendimento)",
         "💻 Código Explicado Linha por Linha"
     ])
 
+    # Inicialização dos estados para os templates de RAG
+    if 'rag_persona' not in st.session_state:
+        st.session_state['rag_persona'] = "Você é o instrutor técnico de usinagem e segurança do SENAI. Responda de forma técnica, objetiva e com foco rigoroso em normas de segurança industrial."
+    if 'rag_contexto' not in st.session_state:
+        st.session_state['rag_contexto'] = """MANUAL DE OPERAÇÃO - TORNO MECÂNICO E CNC SENAI:
+1. SEGURANÇA OBRIGATÓRIA: É expressamente obrigatório o uso de óculos de proteção (EPI) e calçado com biqueira de aço na oficina.
+2. VESTIMENTA: Nunca opere o torno usando relógios, anéis, pulseiras ou mangas compridas soltas. Cabelos longos devem estar presos.
+3. VELOCIDADE DE CORTE: A velocidade recomendada para desbaste de alumínio 6061 é de 250 m/min com pastilha de metal duro.
+4. EMERGÊNCIA: Ao perceber vibração anormal ou barulho estridente, pressione imediatamente o botão cogumelo de parada de emergência e desligue o disjuntor principal."""
+    if 'rag_pergunta' not in st.session_state:
+        st.session_state['rag_pergunta'] = "Qual é a velocidade máxima para usinar alumínio e o que fazer se o torno começar a vibrar muito?"
+
+    # Funções para os botões de templates rápidos
+    def carregar_template_torno():
+        st.session_state['rag_persona'] = "Você é o instrutor técnico de usinagem e segurança do SENAI. Responda de forma técnica, objetiva e com foco rigoroso em normas de segurança industrial."
+        st.session_state['rag_contexto'] = """MANUAL DE OPERAÇÃO - TORNO MECÂNICO E CNC SENAI:
+1. SEGURANÇA OBRIGATÓRIA: É expressamente obrigatório o uso de óculos de proteção (EPI) e calçado com biqueira de aço na oficina.
+2. VESTIMENTA: Nunca opere o torno usando relógios, anéis, pulseiras ou mangas compridas soltas. Cabelos longos devem estar presos.
+3. VELOCIDADE DE CORTE: A velocidade recomendada para desbaste de alumínio 6061 é de 250 m/min com pastilha de metal duro.
+4. EMERGÊNCIA: Ao perceber vibração anormal ou barulho estridente, pressione imediatamente o botão cogumelo de parada de emergência e desligue o disjuntor principal."""
+        st.session_state['rag_pergunta'] = "Qual é a velocidade máxima para usinar alumínio e o que fazer se o torno começar a vibrar muito?"
+
+    def carregar_template_escola():
+        st.session_state['rag_persona'] = "Você é o assistente virtual da secretaria escolar do SENAI-SP. Seja cordial, acolhedor e forneça orientações acadêmicas precisas."
+        st.session_state['rag_contexto'] = """REGULAMENTO ACADÊMICO E DISCIPLINAR SENAI-SP:
+1. FREQUÊNCIA: É exigida frequência mínima de 75% da carga horária do curso para obtenção do certificado.
+2. ATESTADOS MÉDICOS: O aluno tem até 48 horas úteis após a falta para protocolar o atestado médico original na secretaria.
+3. CRITÉRIOS DE APROVAÇÃO: Média final igual ou superior a 7,0 resulta em aprovação direta. Médias entre 5,0 e 6,9 têm direito à recuperação final.
+4. USO DE CELULAR: O uso de aparelhos celulares durante aulas práticas de laboratório é estritamente proibido sem autorização do docente."""
+        st.session_state['rag_pergunta'] = "Quantos dias eu tenho para entregar um atestado médico se eu faltar na aula?"
+
+    def carregar_template_chef():
+        st.session_state['rag_persona'] = "Você é um Chef especialista em culinária sustentável e combate ao desperdício de alimentos. Sugira preparos práticos e saborosos."
+        st.session_state['rag_contexto'] = """INVENTÁRIO ATUAL DA GELADEIRA:
+- 2 ovos caipiras
+- Meio pote de queijo cottage fresco
+- 3 fatias de pão integral
+- 1 tomate maduro picado
+- Manteiga, sal e orégano na despensa"""
+        st.session_state['rag_pergunta'] = "O que posso preparar para um lanche saudável em 5 minutos aproveitando o que tenho?"
+
     with aba_simulador:
-        st.subheader("🧪 Simulador: Geração Ancorada em Dados Reais")
-        st.write("Veja como a IA Generativa responde sem 'alucinar' quando você entrega os dados corretos no contexto:")
+        st.subheader("🧪 Monte seu Próprio Sistema de RAG")
+        st.write("Escolha um cenário pronto ou digite seus próprios dados para testar como a IA responde ancorada no seu documento:")
 
-        c_g1, c_g2 = st.columns(2)
-        with c_g1:
-            itens_geladeira = st.text_input(
-                "🧊 Itens disponíveis na sua geladeira (Base de Conhecimento / RAG):",
-                "2 ovos, meio tomate, fatias de queijo e manteiga"
+        # Botões de cenários rápidos
+        st.markdown("**💡 Ideias Prontas para Testar com 1 Clique:**")
+        b_t1, b_t2, b_t3 = st.columns(3)
+        b_t1.button("🏭 Manual de Torno CNC (Oficina)", on_click=carregar_template_torno)
+        b_t2.button("📋 Regulamento Escolar (SENAI)", on_click=carregar_template_escola)
+        b_t3.button("🍳 O Chef da Geladeira", on_click=carregar_template_chef)
+
+        st.markdown("---")
+
+        # 1. Persona
+        persona_input = st.text_input(
+            "🎭 1. Persona / Papel da IA (Instrução de Sistema / System Prompt):",
+            value=st.session_state['rag_persona']
+        )
+
+        # 2. Documento de Referência
+        contexto_input = st.text_area(
+            "📚 2. Base de Conhecimento / Documento da Empresa (Contexto Obrigatório do RAG):",
+            value=st.session_state['rag_contexto'],
+            height=160
+        )
+
+        # 3. Pergunta
+        pergunta_input = st.text_input(
+            "💬 3. Pergunta do Usuário:",
+            value=st.session_state['rag_pergunta']
+        )
+
+        # Expander para conexão com Google AI Studio (Chave Gratuita)
+        with st.expander("🔑 Conectar com o Google AI Studio (Gemini API Gratuita - Opcional)"):
+            st.markdown("""
+            > 🆓 **O Google AI Studio oferece chaves de API 100% gratuitas para estudantes e professores!**  
+            > 1. Acesse [**aistudio.google.com**](https://aistudio.google.com/) e faça login com seu Gmail.  
+            > 2. Clique em **'Get API key'** (Obter chave) no menu esquerdo e crie sua chave em 1 clique.  
+            > 3. Cole a chave abaixo para chamar o modelo **Gemini 1.5 Flash** em tempo real:
+            """)
+            chave_gemini = st.text_input(
+                "Cole sua chave do Google AI Studio:",
+                type="password",
+                help="Se deixar vazio, o sistema usará o motor pedagógico local de RAG sem custo e sem chave!"
             )
-        with c_g2:
-            estilo = st.selectbox(
-                "⏱️ Tipo de refeição desejada:",
-                ["Lanche Rápido de 5 minutos", "Refeição Fitness de Forno", "Prato Econômico de Frigideira"]
-            )
 
-        pedido = st.text_input("💬 Pedido do Usuário:", f"Sugira um {estilo} aproveitando tudo o que tenho!")
-
-        with st.expander("🔍 Espiar o Prompt Interno montado pelo RAG (Clique para ver a engenharia)"):
+        # Expander para ver a engenharia do prompt montada
+        with st.expander("🔍 Espiar o Prompt Completo de RAG montado por trás dos panos"):
             st.code(f"""
-[SISTEMA]: Você é um Chef especialista em culinária sustentável e economia doméstica.
-[CONTEXTO CONFIÁVEL / GELADEIRA]: {itens_geladeira}
-[REGRA DE OURO]: Não invente ingredientes que não constam na lista acima.
-[PERGUNTA DO USUÁRIO]: {pedido}
+[INSTRUÇÃO DE SISTEMA / PERSONA]:
+{persona_input}
+
+[REGRA ESTRITA DE RAG]:
+Responda baseando-se EXCLUSIVAMENTE nas informações contidas na BASE DE CONHECIMENTO abaixo.
+Se a informação não estiver descrita no documento, afirme claramente que não encontrou a informação. Não invente fatos.
+
+[BASE DE CONHECIMENTO / DOCUMENTO]:
+{contexto_input}
+
+[PERGUNTA DO USUÁRIO]:
+{pergunta_input}
             """, language="markdown")
 
-        with st.expander("🔑 Conexão com API Real da OpenAI (Opcional)"):
-            st.caption("Se tiver uma chave da OpenAI, insira abaixo para ver um LLM responder ao vivo. Se deixar em branco, o sistema usará o motor pedagógico de RAG:")
-            chave_api_opcional = st.text_input("OpenAI API Key:", type="password", help="Deixe vazio para usar a simulação pedagógica")
+        if st.button("🚀 Consultar IA com RAG", type="primary"):
+            resposta_ia = None
+            origem_resposta = ""
 
-        if st.button("👨‍🍳 Gerar Receita com IA Generativa", type="primary"):
-            resposta_gerada = None
-
-            # Tenta chamada real se uma chave foi fornecida
-            if chave_api_opcional.strip():
+            # 1. Se o aluno forneceu a chave gratuita do Google AI Studio
+            if chave_gemini.strip():
                 try:
-                    with st.spinner("Conectando ao modelo GPT na nuvem..."):
-                        cliente = OpenAI(api_key=chave_api_opcional.strip())
-                        chat = cliente.chat.completions.create(
-                            model="gpt-4o-mini",
-                            messages=[
-                                {"role": "system", "content": "Você é um chef sustentável. Responda em português de forma breve usando APENAS os ingredientes fornecidos no contexto."},
-                                {"role": "user", "content": f"Ingredientes disponíveis: {itens_geladeira}. Pedido: {pedido}"}
-                            ],
-                            max_tokens=300
-                        )
-                        resposta_gerada = chat.choices[0].message.content
-                except Exception as err:
-                    st.warning(f"⚠️ Não foi possível conectar à API da OpenAI ({err}). Alternando para o motor pedagógico local...")
+                    with st.spinner("Conectando ao supermodelo Google Gemini na nuvem..."):
+                        endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={chave_gemini.strip()}"
+                        prompt_envio = f"""PERSONA: {persona_input}
+REGRA ESTRITA: Responda em português baseando-se estritamente na BASE DE CONHECIMENTO abaixo. Se a resposta não estiver lá, diga que a informação não consta no documento.
+BASE DE CONHECIMENTO:
+\"\"\"
+{contexto_input}
+\"\"\"
+PERGUNTA: {pergunta_input}"""
+                        payload = {
+                            "contents": [{"parts": [{"text": prompt_envio}]}],
+                            "generationConfig": {"temperature": 0.2, "maxOutputTokens": 400}
+                        }
+                        req = requests.post(endpoint, json=payload, timeout=25)
+                        if req.status_code == 200:
+                            dados_json = req.json()
+                            resposta_ia = dados_json['candidates'][0]['content']['parts'][0]['text']
+                            origem_resposta = "Google Gemini (Nuvem / Google AI Studio)"
+                        else:
+                            st.warning(f"⚠️ Erro na API do Google ({req.status_code}: {req.text[:120]}). Alternando para o motor pedagógico local...")
+                except Exception as ex:
+                    st.warning(f"⚠️ Não foi possível conectar ao Google Gemini ({ex}). Alternando para o motor pedagógico local...")
 
-            # Motor dinâmico pedagógico local (garante que usa os itens digitados sem alucinar)
-            if not resposta_gerada:
-                itens_limpos = [i.strip() for i in itens_geladeira.replace(' e ', ',').replace(';', ',').split(',') if i.strip()]
-                if not itens_limpos:
-                    itens_limpos = ["ingredientes disponíveis"]
-                
-                principal = itens_limpos[0].capitalize()
-                secundarios = ", ".join(itens_limpos[1:]) if len(itens_limpos) > 1 else "temperos a gosto"
-                
-                if "Fitness" in estilo:
-                    nome_prato = f"🥗 Preparado Leve e Saudável de {principal}"
-                    tempo = "10 a 15 minutos"
-                    passo1 = f"Higienize e fatie **{principal}** em porções finas para facilitar o cozimento."
-                    passo2 = f"Misture delicadamente **{secundarios}** para compor uma refeição rica e equilibrada."
-                    passo3 = "Asse ou grelhe em fogo brando com o mínimo de gordura para preservar os nutrientes."
-                elif "Frigideira" in estilo or "Econômico" in estilo:
-                    nome_prato = f"🍳 Salteado Rápido de {principal} na Frigideira"
-                    tempo = "7 a 10 minutos"
-                    passo1 = "Aqueça uma frigideira antiaderente em fogo médio."
-                    passo2 = f"Adicione **{principal}** e refogue por 3 a 4 minutos até dourar uniformemente."
-                    passo3 = f"Incorpore **{secundarios}**, mexa bem para apurar os sabores e sirva quente."
-                else: # Lanche Rápido
-                    nome_prato = f"🥪 Lanche Expresso de {principal}"
-                    tempo = "5 minutos"
-                    passo1 = f"Separe uma porção de **{principal}** em um prato ou tábua."
-                    passo2 = f"Combine com **{secundarios}** para rechear ou montar sua porção rápida."
-                    passo3 = "Aqueça por 2 minutos se preferir crocante e sirva imediatamente sem sujeira."
+            # 2. Motor Pedagógico Local de RAG (Busca e ancoragem de trechos)
+            if not resposta_ia:
+                origem_resposta = "Motor Pedagógico Integrado (RAG Heurístico sem Chave)"
+                # Quebrar o documento em linhas/parágrafos
+                linhas = [l.strip() for l in contexto_input.split('\n') if l.strip()]
+                palavras_pergunta = set(pergunta_input.lower().replace('?', ' ').replace(',', ' ').split())
+                palavras_uteis = [p for p in palavras_pergunta if len(p) > 3]
 
-                st.success(f"""
-                ### 🍽️ Sugestão Personalizada do Chef IA (Ancorada em RAG):
-                
-                🍳 **{nome_prato}**
-                
-                * **Tempo Estimado:** {tempo}
-                * **Ingredientes Ancorados:** `{itens_geladeira}` (Respeitando rigorosamente sua geladeira!)
-                
-                **Passo a Passo de Execução:**
-                1. {passo1}
-                2. {passo2}
-                3. {passo3}
-                
-                *✅ Princípio do RAG Respeitado: 100% dos seus ingredientes foram aproveitados sem nenhuma alucinação externa!*
-                """)
-            else:
-                st.success(f"""
-                ### 🍽️ Resposta Direta do Modelo GPT (Nuvem):
-                {resposta_gerada}
-                """)
+                # Pontuar cada linha pela presença de palavras-chave da pergunta (Retrieval)
+                linhas_relevantes = []
+                for linha in linhas:
+                    score = sum(1 for p in palavras_uteis if p in linha.lower())
+                    if score > 0:
+                        linhas_relevantes.append((score, linha))
+
+                # Ordenar por relevância
+                linhas_relevantes.sort(key=lambda x: x[0], reverse=True)
+
+                if linhas_relevantes:
+                    evidencias = "\n".join([f"• *\"{l[1]}\"*" for l in linhas_relevantes[:3]])
+                    resposta_ia = f"""Com base no documento fornecido e atuando como **{persona_input.split('.')[0]}**:
+
+Identifiquei as seguintes orientações diretamente no texto:
+
+{evidencias}
+
+✅ **Garantia RAG:** Esta resposta foi extraída estritamente das evidências do documento informado, sem qualquer adição inventada."""
+                else:
+                    resposta_ia = f"""🛡️ **Bloqueio Anti-Alucinação do RAG Ativado:**
+
+Como **{persona_input.split('.')[0]}**, analisei minuciosamente o documento informado, porém **não encontrei nenhuma menção** aos termos da sua pergunta.
+
+Em um sistema comum sem RAG, a IA poderia 'inventar' uma resposta plausível mas falsa. Graças ao RAG, ela reconhece os limites do documento e protege a sua decisão!"""
+
+            # Exibição do resultado
+            st.markdown("---")
+            st.success(f"""
+            ### 🤖 Resposta da IA com Ancoragem:
+            *{resposta_ia}*
+            """)
+            st.caption(f"📡 **Fonte do Processamento:** {origem_resposta}")
 
     with aba_passos:
-        st.subheader("📖 Como a IA Generativa e o RAG Funcionam? (Sem Complicação)")
+        st.subheader("📖 Como o RAG Funciona na Prática? (Sem Complicação)")
         st.markdown("""
         > 💡 **Analogia da Vida Real:**  
-        > Se você perguntar para o ChatGPT: *"Como montar a peça X da minha fábrica?"*, ele pode inventar peças que não existem na sua empresa (isso é a famosa **alucinação**).  
-        > Mas se você entregar o manual oficial da sua empresa junto com a pergunta e disser: *"Responda APENAS usando este manual"*, ele vira um assistente infalível!  
-        > Isso é o **RAG (Geração Aumentada por Recuperação)**: entregar a folha de respostas na mão da IA antes de ela começar a falar!
+        > Se você perguntar para uma IA genérica: *"Qual é o horário do almoço na fábrica de São Bernardo?"*, ela não tem como adivinhar e vai **alucinar** (inventar um horário que parece real).  
+        > Mas se você colocar o **manual de normas da fábrica** na frente dela e disser: *"Responda apenas com o que está escrito neste papel"*, ela se torna uma assistente corporativa infalível!  
+        > Isso é o **RAG (Retrieval-Augmented Generation)**: buscar o fato certo antes de gerar o texto!
         """)
         st.markdown("---")
-        st.markdown("### 🧩 Os 4 Passos Fundamentais do RAG:")
+        st.markdown("### 🧩 Os 4 Passos Fundamentais de Qualquer Solução RAG:")
 
         c1, c2 = st.columns(2)
         with c1:
             st.markdown("""
-            #### 1️⃣ A Pergunta do Usuário (Query)
-            * O usuário faz uma pergunta em português comum (ex: *"O que posso cozinhar agora?"*).
+            #### 1️⃣ Pergunta do Usuário (Query)
+            * O usuário faz uma pergunta em linguagem comum (ex: *"Qual a velocidade para tornear alumínio?"*).
             """)
 
             st.markdown("""
-            #### 2️⃣ Recuperação do Contexto (Retrieval)
-            * O sistema busca no banco de dados, arquivos PDF da empresa ou na lista da geladeira as informações exatas relacionadas àquela pergunta.
+            #### 2️⃣ Busca e Recuperação (Retrieval)
+            * O sistema vasculha o banco de dados da empresa, PDFs ou manuais técnicos e pinça apenas os **2 ou 3 parágrafos exatos** que tratam daquele assunto.
             """)
 
         with c2:
             st.markdown("""
-            #### 3️⃣ Engenharia de Prompt (Augmentation)
-            * Juntamos tudo em uma instrução blindada:
-              * *Papel do robô:* Especialista.
-              * *Colinha:* Os dados recuperados.
-              * *Regra:* Não invente nada fora desse contexto.
+            #### 3️⃣ Aumento do Prompt (Augmentation)
+            * O sistema junta:
+              * **Persona:** O tom de voz e o papel profissional da IA.
+              * **Contexto:** Os parágrafos recuperados do documento oficial.
+              * **Regra Anti-Alucinação:** Não inventar nada fora desse texto.
             """)
 
             st.markdown("""
-            #### 4️⃣ Geração da Resposta (Generation)
-            * O modelo generativo (como GPT ou Gemini) escreve um texto fluente, útil e 100% ancorado na realidade da sua empresa!
+            #### 4️⃣ Geração Segura (Generation)
+            * O modelo fundacional (como o **Google Gemini**) redige uma resposta clara, profissional e 100% ancorada nos fatos reais da sua organização!
             """)
 
     with aba_codigo:
-        st.subheader("💻 O Código Python Linha por Linha")
+        st.subheader("💻 O Código Python Linha por Linha com a API do Google Gemini")
+        st.write("Veja como conectar um script Python diretamente ao Google Gemini para implementar RAG corporativo:")
+
         st.code("""
-# ETAPA 1: O CONTEXTO RECUPERADO (A COLINHA DO RAG)
-ingredientes_geladeira = "2 ovos, meio tomate, fatias de queijo e manteiga"
-pergunta_usuario = "Sugira um lanche rápido para agora!"
+import requests
 
-# ETAPA 2: MONTAGEM DO PROMPT ENRIQUECIDO COM RAG
-prompt_final = f'''
-Você é um assistente de cozinha sustentável.
-Contexto de ingredientes disponíveis: {ingredientes_geladeira}
-Regra estrita: Crie uma receita usando APENAS o que está disponível.
+# ETAPA 1: O DOCUMENTO DA EMPRESA E A PERGUNTA DO USUÁRIO
+documento = '''
+MANUAL DE OPERAÇÃO SENAI:
+A velocidade máxima para usinar alumínio 6061 é de 250 m/min.
+Em caso de emergência ou vibração, aperte o botão cogumelo vermelho.
+'''
+pergunta = "Qual a velocidade recomendada para usinagem de alumínio?"
 
-Pergunta: {pergunta_usuario}
+# ETAPA 2: MONTAGEM DO PROMPT ENRIQUECIDO (RAG)
+prompt_rag = f'''
+Você é um instrutor de segurança do SENAI.
+Responda usando EXCLUSIVAMENTE as informações do documento abaixo:
+
+DOCUMENTO:
+{documento}
+
+PERGUNTA:
+{pergunta}
 '''
 
-# ETAPA 3: CHAMADA À API DO MODELO GENERATIVO (Exemplo OpenAI / Azure)
-from openai import OpenAI
+# ETAPA 3: CHAMADA À API GRATUITA DO GOOGLE GEMINI (AI STUDIO)
+CHAVE_GOOGLE = "SUA_CHAVE_OBTIDA_NO_AISTUDIO_AQUI"
+url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={CHAVE_GOOGLE}"
 
-# cliente = OpenAI(api_key="SUA_CHAVE_AQUI")
-# resposta = cliente.chat.completions.create(
-#     model="gpt-4o-mini",
-#     messages=[
-#         {"role": "system", "content": "Você é um chef sustentável."},
-#         {"role": "user", "content": prompt_final}
-#     ]
-# )
+payload = {
+    "contents": [{"parts": [{"text": prompt_rag}]}],
+    "generationConfig": {"temperature": 0.2, "maxOutputTokens": 300}
+}
 
-# ETAPA 4: EXIBIÇÃO DA RESPOSTA SEGURA E ANCORADA
-print("Receita gerada com sucesso sem inventar ingredientes externos!")
+# Enviamos a requisição para a nuvem do Google
+resposta = requests.post(url, json=payload)
+resultado = resposta.json()
+
+# ETAPA 4: EXIBIÇÃO DA RESPOSTA ANCORADA
+print(resultado['candidates'][0]['content']['parts'][0]['text'])
         """, language="python")
-        st.info("💡 **Dica de Ouro:** O RAG é a tecnologia mais valorizada do mercado hoje porque permite que empresas usem o poder dos grandes modelos de IA dentro de seus próprios manuais, normas e bancos de dados privados sem risco de vazamento ou invenções!")
+        st.info("💡 **Dica de Ouro:** O Google AI Studio (aistudio.google.com) permite gerar chaves de API sem cartão de crédito, permitindo que qualquer turma de alunos do SENAI desenvolva projetos reais de Inteligência Artificial Generativa em sala de aula!")
 
     exibir_rodape_educacional()

@@ -8,5 +8,6 @@ plotly>=5.19.0
 statsmodels>=0.14.0
 # Biblioteca Central de Inteligência Artificial e Machine Learning
 scikit-learn>=1.4.0
-# Conexão com Modelos Generativos na Nuvem (Azure / OpenAI)
-openai>=1.14.0
+# Conexão com Modelos Generativos na Nuvem (Google AI Studio / Gemini)
+requests>=2.31.0
+
