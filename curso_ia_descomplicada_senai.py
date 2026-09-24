@@ -110,7 +110,7 @@ menu = st.sidebar.radio(
         "🎓 4. Deep Learning (Previsão de Notas)",
         "🍔 5. PLN (Avaliações do iFood)",
         "📸 6. Visão Computacional (Matriz de Imagem)",
-        "🍳 7. IA Generativa & RAG (Crie sua IA)"
+        "💬 7. Chatbot com RAG (Crie sua IA)"
     ]
 )
 
@@ -1048,276 +1048,395 @@ else:
     exibir_rodape_educacional()
 
 # =========================================================================================
-# MÓDULO 7: IA GENERATIVA & RAG (CRIE SUA PRÓPRIA IA) - DIDÁTICO E PASSO A PASSO
+# MÓDULO 7: CHATBOT COM RAG (CRIE SUA PRÓPRIA IA) - CONVERSACIONAL E DIDÁTICO
 # • Item SENAI: 6. Modelos Personalizados -> 6.1 Arquitetura / 6.2 Conexão com Nuvem
-# • Teoria: Injeção de Contexto no Prompt (RAG) para criar respostas ancoradas em fatos.
+# • Teoria: Chatbot conversacional com Injeção de Contexto (RAG) para respostas ancoradas.
 # =========================================================================================
-elif menu == "🍳 7. IA Generativa & RAG (Crie sua IA)":
-    st.title("🍳 Módulo 7: IA Generativa & RAG (Laboratório Criativo)")
-    st.caption("Conceito Central: Modelos Fundacionais (Google Gemini), Engenharia de Prompt e RAG (Geração Aumentada por Recuperação)")
+elif menu == "💬 7. Chatbot com RAG (Crie sua IA)":
+    st.title("💬 Módulo 7: Chatbot Inteligente com RAG")
+    st.caption("Conceito Central: Chatbot Conversacional, Modelos Fundacionais (Google Gemini), Engenharia de Prompt e RAG (Recuperação de Informação)")
 
     aba_simulador, aba_passos, aba_codigo = st.tabs([
-        "🎮 Laboratório: Crie seu Assistente com RAG",
-        "🧭 Os 4 Passos do RAG (Para Entendimento)",
+        "💬 Chatbot com RAG (Interativo)",
+        "🧭 Os 4 Passos do Chatbot RAG (Para Entendimento)",
         "💻 Código Explicado Linha por Linha"
     ])
 
-    # Inicialização dos estados para os templates de RAG
+    # Inicialização dos estados para os templates e mensagens do chat
     if 'rag_persona' not in st.session_state:
-        st.session_state['rag_persona'] = "Você é o instrutor técnico de usinagem e segurança do SENAI. Responda de forma técnica, objetiva e com foco rigoroso em normas de segurança industrial."
+        st.session_state['rag_persona'] = "Você é o instrutor técnico de usinagem e segurança do SENAI. Responda de forma técnica, cordial e com foco rigoroso em normas de segurança industrial."
     if 'rag_contexto' not in st.session_state:
         st.session_state['rag_contexto'] = """MANUAL DE OPERAÇÃO - TORNO MECÂNICO E CNC SENAI:
 1. SEGURANÇA OBRIGATÓRIA: É expressamente obrigatório o uso de óculos de proteção (EPI) e calçado com biqueira de aço na oficina.
-2. VESTIMENTA: Nunca opere o torno usando relógios, anéis, pulseiras ou mangas compridas soltas. Cabelos longos devem estar presos.
-3. VELOCIDADE DE CORTE: A velocidade recomendada para desbaste de alumínio 6061 é de 250 m/min com pastilha de metal duro.
+2. VESTIMENTA: Nunca opere o torno usando relógios, anéis, pulseiras ou mangas compridas soltas. Cabelos longos devem estar presos com touca ou rede.
+3. VELOCIDADE DE CORTE: A velocidade recomendada para desbaste de alumínio 6061 é de 250 m/min com pastilha de metal duro. Para aço 1020, use 180 m/min.
 4. EMERGÊNCIA: Ao perceber vibração anormal ou barulho estridente, pressione imediatamente o botão cogumelo de parada de emergência e desligue o disjuntor principal."""
-    if 'rag_pergunta' not in st.session_state:
-        st.session_state['rag_pergunta'] = "Qual é a velocidade máxima para usinar alumínio e o que fazer se o torno começar a vibrar muito?"
+    if 'rag_chat_messages' not in st.session_state:
+        st.session_state['rag_chat_messages'] = [
+            {
+                "role": "assistant",
+                "content": "Olá, operador! Sou o instrutor de usinagem e segurança do SENAI. Tenho o manual técnico da oficina em mãos. Qual a sua dúvida sobre procedimentos de torneamento, ferramentas ou regras de segurança?",
+                "source": "Sistema"
+            }
+        ]
+    if 'rag_google_key' not in st.session_state:
+        st.session_state['rag_google_key'] = ""
 
-    # Funções para os botões de templates rápidos
+    # Funções auxiliares para carregar templates prontos
     def carregar_template_torno():
-        st.session_state['rag_persona'] = "Você é o instrutor técnico de usinagem e segurança do SENAI. Responda de forma técnica, objetiva e com foco rigoroso em normas de segurança industrial."
+        st.session_state['rag_persona'] = "Você é o instrutor técnico de usinagem e segurança do SENAI. Responda de forma técnica, cordial e com foco rigoroso em normas de segurança industrial."
         st.session_state['rag_contexto'] = """MANUAL DE OPERAÇÃO - TORNO MECÂNICO E CNC SENAI:
 1. SEGURANÇA OBRIGATÓRIA: É expressamente obrigatório o uso de óculos de proteção (EPI) e calçado com biqueira de aço na oficina.
-2. VESTIMENTA: Nunca opere o torno usando relógios, anéis, pulseiras ou mangas compridas soltas. Cabelos longos devem estar presos.
-3. VELOCIDADE DE CORTE: A velocidade recomendada para desbaste de alumínio 6061 é de 250 m/min com pastilha de metal duro.
+2. VESTIMENTA: Nunca opere o torno usando relógios, anéis, pulseiras ou mangas compridas soltas. Cabelos longos devem estar presos com touca ou rede.
+3. VELOCIDADE DE CORTE: A velocidade recomendada para desbaste de alumínio 6061 é de 250 m/min com pastilha de metal duro. Para aço 1020, use 180 m/min.
 4. EMERGÊNCIA: Ao perceber vibração anormal ou barulho estridente, pressione imediatamente o botão cogumelo de parada de emergência e desligue o disjuntor principal."""
-        st.session_state['rag_pergunta'] = "Qual é a velocidade máxima para usinar alumínio e o que fazer se o torno começar a vibrar muito?"
+        st.session_state['rag_chat_messages'] = [
+            {
+                "role": "assistant",
+                "content": "Olá, operador! Sou o instrutor de usinagem e segurança do SENAI. Tenho o manual técnico da oficina em mãos. Qual a sua dúvida sobre procedimentos de torneamento, ferramentas ou regras de segurança?",
+                "source": "Sistema"
+            }
+        ]
 
     def carregar_template_escola():
         st.session_state['rag_persona'] = "Você é o assistente virtual da secretaria escolar do SENAI-SP. Seja cordial, acolhedor e forneça orientações acadêmicas precisas."
         st.session_state['rag_contexto'] = """REGULAMENTO ACADÊMICO E DISCIPLINAR SENAI-SP:
 1. FREQUÊNCIA: É exigida frequência mínima de 75% da carga horária do curso para obtenção do certificado.
-2. ATESTADOS MÉDICOS: O aluno tem até 48 horas úteis após a falta para protocolar o atestado médico original na secretaria.
-3. CRITÉRIOS DE APROVAÇÃO: Média final igual ou superior a 7,0 resulta em aprovação direta. Médias entre 5,0 e 6,9 têm direito à recuperação final.
-4. USO DE CELULAR: O uso de aparelhos celulares durante aulas práticas de laboratório é estritamente proibido sem autorização do docente."""
-        st.session_state['rag_pergunta'] = "Quantos dias eu tenho para entregar um atestado médico se eu faltar na aula?"
+2. ATESTADOS MÉDICOS: O aluno tem até 48 horas úteis após a falta para protocolar o atestado médico original na secretaria da unidade.
+3. CRITÉRIOS DE APROVAÇÃO: Média final igual ou superior a 7,0 resulta em aprovação direta. Médias entre 5,0 e 6,9 têm direito à avaliação de recuperação.
+4. USO DE CELULAR: O uso de aparelhos celulares durante aulas práticas de laboratório e oficinas é estritamente proibido sem autorização do docente."""
+        st.session_state['rag_chat_messages'] = [
+            {
+                "role": "assistant",
+                "content": "Olá, estudante! Sou o assistente virtual da secretaria do SENAI-SP. Posso orientá-lo sobre prazos de atestados, frequência mínima, critérios de notas e regulamento escolar. Como posso te ajudar hoje?",
+                "source": "Sistema"
+            }
+        ]
 
     def carregar_template_chef():
-        st.session_state['rag_persona'] = "Você é um Chef especialista em culinária sustentável e combate ao desperdício de alimentos. Sugira preparos práticos e saborosos."
-        st.session_state['rag_contexto'] = """INVENTÁRIO ATUAL DA GELADEIRA:
+        st.session_state['rag_persona'] = "Você é um Chef especialista em culinária sustentável e combate ao desperdício de alimentos. Sugira receitas práticas e responda como um cozinheiro amigável."
+        st.session_state['rag_contexto'] = """INVENTÁRIO ATUAL DA GELADEIRA E DESPENSA:
 - 2 ovos caipiras
 - Meio pote de queijo cottage fresco
 - 3 fatias de pão integral
 - 1 tomate maduro picado
 - Manteiga, sal e orégano na despensa"""
-        st.session_state['rag_pergunta'] = "O que posso preparar para um lanche saudável em 5 minutos aproveitando o que tenho?"
+        st.session_state['rag_chat_messages'] = [
+            {
+                "role": "assistant",
+                "content": "Olá! Sou o Chef sustentável da cozinha. Já examinei o que temos disponível na geladeira e despensa. O que você gostaria de preparar para comer agora?",
+                "source": "Sistema"
+            }
+        ]
 
     with aba_simulador:
-        st.subheader("🧪 Monte seu Próprio Sistema de RAG")
-        st.write("Escolha um cenário pronto ou digite seus próprios dados para testar como a IA responde ancorada no seu documento:")
+        st.subheader("💬 Laboratório de Chatbot Corporativo com RAG")
+        st.write("Converse com o assistente em tempo real! Ele utiliza **RAG** para responder estritamente com base no documento da empresa.")
 
         # Botões de cenários rápidos
-        st.markdown("**💡 Ideias Prontas para Testar com 1 Clique:**")
-        b_t1, b_t2, b_t3 = st.columns(3)
-        b_t1.button("🏭 Manual de Torno CNC (Oficina)", on_click=carregar_template_torno)
-        b_t2.button("📋 Regulamento Escolar (SENAI)", on_click=carregar_template_escola)
-        b_t3.button("🍳 O Chef da Geladeira", on_click=carregar_template_chef)
+        st.markdown("**💡 Escolha um Cenário Corporativo Pronto:**")
+        b_c1, b_c2, b_c3 = st.columns(3)
+        b_c1.button("🏭 Suporte Torno CNC (Oficina)", on_click=carregar_template_torno, use_container_width=True)
+        b_c2.button("📋 Secretaria Escolar (SENAI)", on_click=carregar_template_escola, use_container_width=True)
+        b_c3.button("🍳 Chef Sustentável da Geladeira", on_click=carregar_template_chef, use_container_width=True)
 
         st.markdown("---")
 
-        # 1. Persona
-        persona_input = st.text_input(
-            "🎭 1. Persona / Papel da IA (Instrução de Sistema / System Prompt):",
-            value=st.session_state['rag_persona']
-        )
+        # Expander de Configuração do RAG (Persona, Documento e Chave)
+        with st.expander("⚙️ Personalizar Base de Conhecimento, Persona e Chave Google (Clique para abrir/fechar)", expanded=False):
+            st.markdown("### 🛠️ Personalização do seu Chatbot:")
+            with st.form("form_config_rag"):
+                col_cfg1, col_cfg2 = st.columns(2)
+                with col_cfg1:
+                    novo_persona = st.text_area(
+                        "🎭 Persona da IA (System Prompt / Papel do Robô):",
+                        value=st.session_state['rag_persona'],
+                        height=110,
+                        help="Define como o robô deve se comportar e falar com o cliente."
+                    )
+                    nova_chave = st.text_input(
+                        "🔑 Chave de API do Google AI Studio (Opcional - Gemini 1.5 Flash):",
+                        value=st.session_state.get('rag_google_key', ''),
+                        type="password",
+                        help="Gere sua chave gratuita em aistudio.google.com sem cartão de crédito. Se deixar vazio, usa o motor local!"
+                    )
+                    st.caption("🆓 Obtenha uma chave gratuita em: [**aistudio.google.com**](https://aistudio.google.com/)")
 
-        # 2. Documento de Referência
-        contexto_input = st.text_area(
-            "📚 2. Base de Conhecimento / Documento da Empresa (Contexto Obrigatório do RAG):",
-            value=st.session_state['rag_contexto'],
-            height=160
-        )
+                with col_cfg2:
+                    novo_contexto = st.text_area(
+                        "📚 Base de Conhecimento da Empresa (Documento / Manual do RAG):",
+                        value=st.session_state['rag_contexto'],
+                        height=175,
+                        help="O texto oficial que a IA usará como colinha para responder sem alucinar."
+                    )
 
-        # 3. Pergunta
-        pergunta_input = st.text_input(
-            "💬 3. Pergunta do Usuário:",
-            value=st.session_state['rag_pergunta']
-        )
+                btn_salvar = st.form_submit_button("💾 Salvar Alterações e Atualizar Chatbot", type="primary")
+                if btn_salvar:
+                    st.session_state['rag_persona'] = novo_persona
+                    st.session_state['rag_contexto'] = novo_contexto
+                    st.session_state['rag_google_key'] = nova_chave
+                    st.session_state['rag_chat_messages'].append({
+                        "role": "assistant",
+                        "content": f"🔄 *Configurações salvas! Nova persona ativa:* **{novo_persona.split('.')[0]}**. Base de conhecimento atualizada com sucesso. Em que posso te ajudar?",
+                        "source": "Sistema"
+                    })
+                    st.rerun()
 
-        # Expander para conexão com Google AI Studio (Chave Gratuita)
-        with st.expander("🔑 Conectar com o Google AI Studio (Gemini API Gratuita - Opcional)"):
-            st.markdown("""
-            > 🆓 **O Google AI Studio oferece chaves de API 100% gratuitas para estudantes e professores!**  
-            > 1. Acesse [**aistudio.google.com**](https://aistudio.google.com/) e faça login com seu Gmail.  
-            > 2. Clique em **'Get API key'** (Obter chave) no menu esquerdo e crie sua chave em 1 clique.  
-            > 3. Cole a chave abaixo para chamar o modelo **Gemini 1.5 Flash** em tempo real:
-            """)
-            chave_gemini = st.text_input(
-                "Cole sua chave do Google AI Studio:",
-                type="password",
-                help="Se deixar vazio, o sistema usará o motor pedagógico local de RAG sem custo e sem chave!"
-            )
-
-        # Expander para ver a engenharia do prompt montada
-        with st.expander("🔍 Espiar o Prompt Completo de RAG montado por trás dos panos"):
-            st.code(f"""
+            with st.expander("🔍 Espiar o Prompt Completo de RAG montado por trás dos panos"):
+                st.code(f"""
 [INSTRUÇÃO DE SISTEMA / PERSONA]:
-{persona_input}
+{st.session_state['rag_persona']}
 
 [REGRA ESTRITA DE RAG]:
-Responda baseando-se EXCLUSIVAMENTE nas informações contidas na BASE DE CONHECIMENTO abaixo.
-Se a informação não estiver descrita no documento, afirme claramente que não encontrou a informação. Não invente fatos.
+Responda às dúvidas do usuário usando EXCLUSIVAMENTE a BASE DE CONHECIMENTO oficial.
+Se a informação não estiver descrita no documento, afirme educadamente que o documento não contém essa informação. Não invente fatos.
 
-[BASE DE CONHECIMENTO / DOCUMENTO]:
-{contexto_input}
+[BASE DE CONHECIMENTO]:
+{st.session_state['rag_contexto']}
+                """, language="markdown")
 
-[PERGUNTA DO USUÁRIO]:
-{pergunta_input}
-            """, language="markdown")
+        # Barra de Status e Ações do Chat
+        col_st1, col_st2 = st.columns([3, 1])
+        with col_st1:
+            modo_ativo = "Google Gemini 1.5 Flash (Nuvem)" if st.session_state['rag_google_key'].strip() else "Motor Pedagógico Local (Sem Chave / Gratuito)"
+            qtd_palavras = len(st.session_state['rag_contexto'].split())
+            st.info(f"🤖 **Status:** Atuando como *{st.session_state['rag_persona'].split('.')[0]}* | 📄 **Base Carregada:** {qtd_palavras} palavras | ⚡ **Motor:** {modo_ativo}")
+        with col_st2:
+            if st.button("🗑️ Limpar Conversa", use_container_width=True):
+                st.session_state['rag_chat_messages'] = [{
+                    "role": "assistant",
+                    "content": f"Histórico limpo! Sou seu assistente (**{st.session_state['rag_persona'].split('.')[0]}**). Como posso ajudar você agora?",
+                    "source": "Sistema"
+                }]
+                st.rerun()
 
-        if st.button("🚀 Consultar IA com RAG", type="primary"):
-            resposta_ia = None
-            origem_resposta = ""
+        # Renderização do Histórico de Conversas
+        for msg in st.session_state['rag_chat_messages']:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+                if msg.get("source"):
+                    st.caption(f"📡 *{msg['source']}*")
 
-            # 1. Se o aluno forneceu a chave gratuita do Google AI Studio
-            if chave_gemini.strip():
-                try:
-                    with st.spinner("Conectando ao supermodelo Google Gemini na nuvem..."):
-                        endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={chave_gemini.strip()}"
-                        prompt_envio = f"""PERSONA: {persona_input}
-REGRA ESTRITA: Responda em português baseando-se estritamente na BASE DE CONHECIMENTO abaixo. Se a resposta não estiver lá, diga que a informação não consta no documento.
-BASE DE CONHECIMENTO:
+        # Caixa de Entrada do Chat (Interação contínua estilo Chatbot)
+        if prompt_usuario := st.chat_input("Digite sua dúvida para o assistente (ex: Qual o EPI obrigatório?)..."):
+            # 1. Adicionar e exibir mensagem do usuário
+            st.session_state['rag_chat_messages'].append({
+                "role": "user",
+                "content": prompt_usuario
+            })
+            with st.chat_message("user"):
+                st.markdown(prompt_usuario)
+
+            # 2. Processar a resposta do assistente
+            with st.chat_message("assistant"):
+                resposta_ia = None
+                origem_resposta = ""
+
+                # MOTOR 1: Google Gemini 1.5 Flash via API Nuvem (Google AI Studio)
+                if st.session_state['rag_google_key'].strip():
+                    with st.spinner("Consultando documento via Google Gemini 1.5 Flash..."):
+                        try:
+                            chave_limpa = st.session_state['rag_google_key'].strip()
+                            url_gemini = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={chave_limpa}"
+
+                            # Preparar histórico para a API do Gemini (deve começar com turn 'user')
+                            contents_api = []
+                            for m in st.session_state['rag_chat_messages']:
+                                r = "user" if m["role"] == "user" else "model"
+                                if not contents_api and r != "user":
+                                    continue
+                                contents_api.append({
+                                    "role": r,
+                                    "parts": [{"text": m["content"]}]
+                                })
+
+                            system_instruction = f"""Você é: {st.session_state['rag_persona']}
+
+DIRETRIZ ESTRITA DE RAG (Recuperação de Informação):
+Você é um assistente de chatbot corporativo. Você DEVE responder às dúvidas do usuário utilizando EXCLUSIVAMENTE as informações contidas na BASE DE CONHECIMENTO oficial fornecida abaixo.
+Se a resposta para a dúvida do usuário não estiver expressamente contida na base de conhecimento, responda com cordialidade e clareza informando que essa informação não consta no documento oficial da empresa e oriente onde buscar ajuda. NUNCA invente procedimentos, regras, números ou fatos externos.
+
+BASE DE CONHECIMENTO OFICIAL:
 \"\"\"
-{contexto_input}
-\"\"\"
-PERGUNTA: {pergunta_input}"""
-                        payload = {
-                            "contents": [{"parts": [{"text": prompt_envio}]}],
-                            "generationConfig": {"temperature": 0.2, "maxOutputTokens": 400}
-                        }
-                        req = requests.post(endpoint, json=payload, timeout=25)
-                        if req.status_code == 200:
-                            dados_json = req.json()
-                            resposta_ia = dados_json['candidates'][0]['content']['parts'][0]['text']
-                            origem_resposta = "Google Gemini (Nuvem / Google AI Studio)"
-                        else:
-                            st.warning(f"⚠️ Erro na API do Google ({req.status_code}: {req.text[:120]}). Alternando para o motor pedagógico local...")
-                except Exception as ex:
-                    st.warning(f"⚠️ Não foi possível conectar ao Google Gemini ({ex}). Alternando para o motor pedagógico local...")
+{st.session_state['rag_contexto']}
+\"\"\""""
 
-            # 2. Motor Pedagógico Local de RAG (Busca e ancoragem de trechos)
-            if not resposta_ia:
-                origem_resposta = "Motor Pedagógico Integrado (RAG Heurístico sem Chave)"
-                # Quebrar o documento em linhas/parágrafos
-                linhas = [l.strip() for l in contexto_input.split('\n') if l.strip()]
-                palavras_pergunta = set(pergunta_input.lower().replace('?', ' ').replace(',', ' ').split())
-                palavras_uteis = [p for p in palavras_pergunta if len(p) > 3]
+                            payload = {
+                                "systemInstruction": {
+                                    "parts": [{"text": system_instruction}]
+                                },
+                                "contents": contents_api,
+                                "generationConfig": {
+                                    "temperature": 0.2,
+                                    "maxOutputTokens": 500
+                                }
+                            }
+                            req = requests.post(url_gemini, json=payload, timeout=25)
+                            if req.status_code == 200:
+                                res_json = req.json()
+                                resposta_ia = res_json['candidates'][0]['content']['parts'][0]['text']
+                                origem_resposta = "Google Gemini 1.5 Flash (Google AI Studio)"
+                            else:
+                                st.warning(f"⚠️ Resposta da API do Google ({req.status_code}): {req.text[:120]}. Alternando para o motor pedagógico local...")
+                        except Exception as ex:
+                            st.warning(f"⚠️ Erro ao conectar ao Gemini ({ex}). Alternando para o motor pedagógico local...")
 
-                # Pontuar cada linha pela presença de palavras-chave da pergunta (Retrieval)
-                linhas_relevantes = []
-                for linha in linhas:
-                    score = sum(1 for p in palavras_uteis if p in linha.lower())
-                    if score > 0:
-                        linhas_relevantes.append((score, linha))
+                # MOTOR 2: Motor Pedagógico Local (RAG Heurístico sem Chave)
+                if not resposta_ia:
+                    origem_resposta = "Motor Pedagógico Local (RAG Heurístico sem Chave)"
+                    texto_user_lower = prompt_usuario.lower().strip()
+                    persona_curta = st.session_state['rag_persona'].split('.')[0]
 
-                # Ordenar por relevância
-                linhas_relevantes.sort(key=lambda x: x[0], reverse=True)
+                    # Tratamento de saudações e gentilezas
+                    saudacoes = ["ola", "olá", "oi", "bom dia", "boa tarde", "boa noite", "opa", "e ai", "e aí", "tudo bem", "como vai"]
+                    agradecimentos = ["obrigado", "obrigada", "valeu", "agradeco", "agradeço", "muito obrigado", "valeu mesmo"]
+                    identidade = ["quem e voce", "quem é você", "quem e vc", "quem é vc", "qual seu nome", "o que voce faz", "o que você faz"]
 
-                if linhas_relevantes:
-                    evidencias = "\n".join([f"• *\"{l[1]}\"*" for l in linhas_relevantes[:3]])
-                    resposta_ia = f"""Com base no documento fornecido e atuando como **{persona_input.split('.')[0]}**:
+                    palavras_msg = set(texto_user_lower.replace('?', ' ').replace('!', ' ').replace(',', ' ').split())
 
-Identifiquei as seguintes orientações diretamente no texto:
+                    if any(s in texto_user_lower for s in saudacoes) and len(palavras_msg) <= 4:
+                        resposta_ia = f"Olá! Sou seu assistente virtual especializado (**{persona_curta}**). Estou conectado à base de conhecimento oficial e pronto para responder às suas dúvidas sobre as normas e procedimentos. Em que posso te ajudar hoje?"
+                    elif any(a in texto_user_lower for a in agradecimentos):
+                        resposta_ia = "Por nada! Fico sempre à disposição para esclarecer qualquer dúvida com base na documentação da empresa. Se precisar de mais alguma informação, é só perguntar!"
+                    elif any(i in texto_user_lower for i in identidade):
+                        resposta_ia = f"Eu sou um assistente corporativo com tecnologia RAG (**{persona_curta}**). Minha função é consultar a base de conhecimento oficial fornecida e responder às suas perguntas com precisão e segurança, sem alucinações!"
+                    else:
+                        # Busca de trechos relevantes no documento oficial
+                        linhas = [l.strip() for l in st.session_state['rag_contexto'].split('\n') if l.strip()]
+                        stopwords = {"qual", "quais", "como", "onde", "quando", "quem", "porque", "por", "que", "para", "com", "uma", "uns", "das", "dos", "sobre", "fazer", "pode", "deve", "tenho", "dias", "horas"}
+                        palavras_uteis = [p for p in palavras_msg if len(p) > 2 and p not in stopwords]
+
+                        linhas_relevantes = []
+                        for linha in linhas:
+                            score = sum(1 for p in palavras_uteis if p in linha.lower())
+                            if score > 0:
+                                linhas_relevantes.append((score, linha))
+
+                        linhas_relevantes.sort(key=lambda x: x[0], reverse=True)
+
+                        if linhas_relevantes:
+                            evidencias = "\n".join([f"• *\"{l[1]}\"*" for l in linhas_relevantes[:3]])
+                            resposta_ia = f"""Consultando a nossa base de conhecimento oficial, trago as seguintes orientações sobre sua dúvida:
 
 {evidencias}
 
-✅ **Garantia RAG:** Esta resposta foi extraída estritamente das evidências do documento informado, sem qualquer adição inventada."""
-                else:
-                    resposta_ia = f"""🛡️ **Bloqueio Anti-Alucinação do RAG Ativado:**
+✅ **Ancoragem RAG:** Esta resposta foi recuperada estritamente do documento oficial homologado da empresa."""
+                        else:
+                            resposta_ia = f"""🛡️ **Bloqueio Anti-Alucinação do RAG Ativado:**
 
-Como **{persona_input.split('.')[0]}**, analisei minuciosamente o documento informado, porém **não encontrei nenhuma menção** aos termos da sua pergunta.
+Como **{persona_curta}**, examinei todo o documento oficial cadastrado, porém **não encontrei informações** sobre o que você perguntou.
 
-Em um sistema comum sem RAG, a IA poderia 'inventar' uma resposta plausível mas falsa. Graças ao RAG, ela reconhece os limites do documento e protege a sua decisão!"""
+💡 **Por que isso é bom?** Em um chatbot comum sem RAG, a IA tenderia a 'inventar' ou adivinhar uma resposta que parece verdadeira. Com o RAG, garantimos conformidade: respondemos somente o que está nos manuais homologados da empresa!"""
 
-            # Exibição do resultado
-            st.markdown("---")
-            st.success(f"""
-            ### 🤖 Resposta da IA com Ancoragem:
-            *{resposta_ia}*
-            """)
-            st.caption(f"📡 **Fonte do Processamento:** {origem_resposta}")
+                # Exibição da resposta e salvamento no histórico
+                st.markdown(resposta_ia)
+                st.caption(f"📡 *Origem: {origem_resposta}*")
+
+                st.session_state['rag_chat_messages'].append({
+                    "role": "assistant",
+                    "content": resposta_ia,
+                    "source": origem_resposta
+                })
 
     with aba_passos:
-        st.subheader("📖 Como o RAG Funciona na Prática? (Sem Complicação)")
+        st.subheader("📖 Como um Chatbot Corporativo com RAG Funciona? (Sem Complicação)")
         st.markdown("""
         > 💡 **Analogia da Vida Real:**  
-        > Se você perguntar para uma IA genérica: *"Qual é o horário do almoço na fábrica de São Bernardo?"*, ela não tem como adivinhar e vai **alucinar** (inventar um horário que parece real).  
-        > Mas se você colocar o **manual de normas da fábrica** na frente dela e disser: *"Responda apenas com o que está escrito neste papel"*, ela se torna uma assistente corporativa infalível!  
-        > Isso é o **RAG (Retrieval-Augmented Generation)**: buscar o fato certo antes de gerar o texto!
+        > Se você contratar um atendente novo e colocá-lo para atender clientes sem nenhum treinamento, ele vai improvisar e falar coisas erradas (**alucinação**).  
+        > Mas se você entregar a ele o **Manual de Normas e Procedimentos da Empresa** e instruir: *"Atenda o cliente com educação, mas responda apenas o que estiver neste manual"*, ele se torna um consultor corporativo exemplar!  
+        > Isso é o **RAG (Retrieval-Augmented Generation)** aplicado a Chatbots: unir o dom de conversar da IA com a segurança dos dados da empresa!
         """)
         st.markdown("---")
-        st.markdown("### 🧩 Os 4 Passos Fundamentais de Qualquer Solução RAG:")
+        st.markdown("### 🧩 Os 4 Passos de um Ciclo de Conversa no Chatbot com RAG:")
 
         c1, c2 = st.columns(2)
         with c1:
             st.markdown("""
-            #### 1️⃣ Pergunta do Usuário (Query)
-            * O usuário faz uma pergunta em linguagem comum (ex: *"Qual a velocidade para tornear alumínio?"*).
+            #### 1️⃣ Mensagem do Cliente (`st.chat_input`)
+            * O usuário faz perguntas em linguagem natural (ex: *"Qual a velocidade recomendada para usinar alumínio?"* ou *"Quantos dias tenho para entregar o atestado?"*).
             """)
 
             st.markdown("""
-            #### 2️⃣ Busca e Recuperação (Retrieval)
-            * O sistema vasculha o banco de dados da empresa, PDFs ou manuais técnicos e pinça apenas os **2 ou 3 parágrafos exatos** que tratam daquele assunto.
+            #### 2️⃣ Busca e Recuperação de Evidências (Retrieval)
+            * O sistema vasculha o manual, banco de dados ou arquivos PDF da organização e pinça os **trechos exatos** que tratam daquele assunto.
             """)
 
         with c2:
             st.markdown("""
-            #### 3️⃣ Aumento do Prompt (Augmentation)
+            #### 3️⃣ Aumento do Prompt com Histórico e Regras (Augmentation)
             * O sistema junta:
-              * **Persona:** O tom de voz e o papel profissional da IA.
-              * **Contexto:** Os parágrafos recuperados do documento oficial.
-              * **Regra Anti-Alucinação:** Não inventar nada fora desse texto.
+              * **Persona:** O papel profissional e tom de voz do atendente.
+              * **Histórico da Conversa:** As perguntas e respostas anteriores.
+              * **Base de Conhecimento:** Os trechos oficiais recuperados.
+              * **Regra de Ouro:** Não inventar nenhum dado fora do documento.
             """)
 
             st.markdown("""
-            #### 4️⃣ Geração Segura (Generation)
-            * O modelo fundacional (como o **Google Gemini**) redige uma resposta clara, profissional e 100% ancorada nos fatos reais da sua organização!
+            #### 4️⃣ Geração da Resposta Segura (`st.chat_message`)
+            * O modelo fundacional (como o **Google Gemini 1.5 Flash**) redige uma resposta amigável, fluente e 100% ancorada na verdade da empresa!
             """)
 
     with aba_codigo:
-        st.subheader("💻 O Código Python Linha por Linha com a API do Google Gemini")
-        st.write("Veja como conectar um script Python diretamente ao Google Gemini para implementar RAG corporativo:")
+        st.subheader("💻 O Código Python Linha por Linha: Construindo um Chatbot com RAG no Streamlit")
+        st.write("Veja como é simples criar um chatbot profissional conectando o Streamlit à API do Google Gemini com RAG:")
 
         st.code("""
+import streamlit as st
 import requests
 
-# ETAPA 1: O DOCUMENTO DA EMPRESA E A PERGUNTA DO USUÁRIO
-documento = '''
-MANUAL DE OPERAÇÃO SENAI:
-A velocidade máxima para usinar alumínio 6061 é de 250 m/min.
-Em caso de emergência ou vibração, aperte o botão cogumelo vermelho.
-'''
-pergunta = "Qual a velocidade recomendada para usinagem de alumínio?"
+# ETAPA 1: INICIALIZAR O HISTÓRICO DA CONVERSA
+if "chat_historico" not in st.session_state:
+    st.session_state.chat_historico = [
+        {"role": "assistant", "content": "Olá! Sou seu assistente oficial do SENAI. Como posso te ajudar hoje?"}
+    ]
 
-# ETAPA 2: MONTAGEM DO PROMPT ENRIQUECIDO (RAG)
-prompt_rag = f'''
-Você é um instrutor de segurança do SENAI.
-Responda usando EXCLUSIVAMENTE as informações do documento abaixo:
+# ETAPA 2: RENDERIZAR AS MENSAGENS ANTERIORES NA TELA
+for mensagem in st.session_state.chat_historico:
+    with st.chat_message(mensagem["role"]):
+        st.markdown(mensagem["content"])
 
-DOCUMENTO:
-{documento}
+# ETAPA 3: CAPTURAR A NOVA MENSAGEM DO USUÁRIO
+if prompt_usuario := st.chat_input("Digite sua dúvida sobre o manual técnico..."):
+    # Salva e exibe a mensagem do usuário
+    st.session_state.chat_historico.append({"role": "user", "content": prompt_usuario})
+    with st.chat_message("user"):
+        st.markdown(prompt_usuario)
 
-PERGUNTA:
-{pergunta}
-'''
+    # ETAPA 4: APLICAR O RAG (BASE DE CONHECIMENTO + PROMPT)
+    manual_empresa = \"\"\"
+    MANUAL DO TORNO SENAI:
+    - Velocidade máxima para alumínio: 250 m/min.
+    - Em caso de emergência ou vibração, aperte o botão cogumelo vermelho.
+    \"\"\"
 
-# ETAPA 3: CHAMADA À API GRATUITA DO GOOGLE GEMINI (AI STUDIO)
-CHAVE_GOOGLE = "SUA_CHAVE_OBTIDA_NO_AISTUDIO_AQUI"
-url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={CHAVE_GOOGLE}"
+    prompt_rag = f\"\"\"
+    Você é um instrutor técnico do SENAI.
+    Responda à dúvida do aluno EXCLUSIVAMENTE com base nas informações do manual abaixo:
+    
+    MANUAL:
+    {manual_empresa}
+    
+    PERGUNTA:
+    {prompt_usuario}
+    \"\"\"
 
-payload = {
-    "contents": [{"parts": [{"text": prompt_rag}]}],
-    "generationConfig": {"temperature": 0.2, "maxOutputTokens": 300}
-}
+    # ETAPA 5: CHAMADA À API GRATUITA DO GOOGLE GEMINI (AI STUDIO)
+    CHAVE_GOOGLE = "SUA_CHAVE_OBTIDA_NO_AISTUDIO_AQUI"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={CHAVE_GOOGLE}"
+    payload = {
+        "contents": [{"parts": [{"text": prompt_rag}]}],
+        "generationConfig": {"temperature": 0.2, "maxOutputTokens": 300}
+    }
 
-# Enviamos a requisição para a nuvem do Google
-resposta = requests.post(url, json=payload)
-resultado = resposta.json()
+    resposta = requests.post(url, json=payload).json()
+    resposta_ia = resposta['candidates'][0]['content']['parts'][0]['text']
 
-# ETAPA 4: EXIBIÇÃO DA RESPOSTA ANCORADA
-print(resultado['candidates'][0]['content']['parts'][0]['text'])
+    # ETAPA 6: EXIBIR E SALVAR A RESPOSTA NO CHAT
+    with st.chat_message("assistant"):
+        st.markdown(resposta_ia)
+    st.session_state.chat_historico.append({"role": "assistant", "content": resposta_ia})
         """, language="python")
-        st.info("💡 **Dica de Ouro:** O Google AI Studio (aistudio.google.com) permite gerar chaves de API sem cartão de crédito, permitindo que qualquer turma de alunos do SENAI desenvolva projetos reais de Inteligência Artificial Generativa em sala de aula!")
+        st.info("💡 **Dica de Ouro:** O `st.chat_message` e o `st.chat_input` do Streamlit transformam qualquer script Python comum em um aplicativo moderno de mensagens instantâneas. Com o Google AI Studio (aistudio.google.com), os alunos constroem e testam esse chatbot em sala de aula com custo zero!")
 
     exibir_rodape_educacional()
+
