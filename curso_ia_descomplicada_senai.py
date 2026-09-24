@@ -120,64 +120,190 @@ st.sidebar.caption("📜 Código Aberto sob Licença MIT")
 st.sidebar.caption("SENAI-SP — Formação Inicial e Continuada")
 
 # =========================================================================================
-# MÓDULO 0: APRESENTAÇÃO DAS BIBLIOTECAS
+# MÓDULO 0: APRESENTAÇÃO DAS BIBLIOTECAS COM LINKS OFICIAIS
 # =========================================================================================
 if menu == "🏠 Início: O Kit de Bibliotecas":
     st.title("Bem-vindo ao Laboratório de IA Descomplicada! 🚀")
     st.subheader("Como a Inteligência Artificial funciona na vida real?")
-    st.info("Neste ambiente, você aprenderá os 7 pilares da Inteligência Artificial usando exemplos simples do dia a dia.")
+    st.info("Neste ambiente, você aprenderá os pilares da Inteligência Artificial usando exemplos simples e práticos do dia a dia.")
     
-    st.markdown("""
-    ### 🧰 As 7 Ferramentas que Usamos em Python:
-    * **NumPy:** A calculadora super rápida que faz contas com matrizes.
-    * **Pandas:** O organizador de tabelas (o Excel do programador).
-    * **Scikit-Learn:** Onde moram os robôs inteligentes de Machine Learning.
-    * **NLTK:** A ferramenta que ensina o computador a ler textos e sentimentos.
-    * **OpenCV:** A ferramenta que faz o computador enxergar imagens.
-    * **OpenAI API:** O cabo de conexão com grandes modelos generativos na nuvem.
-    * **Streamlit:** A mágica que transforma nosso código neste painel interativo!
-    """)
-    st.success("👈 Escolha qualquer exemplo no menu lateral para ver o código e testar a IA ao vivo!")
+    st.markdown("### 🧰 As 7 Ferramentas Essenciais que Usamos em Python:")
+    st.caption("Clique nos nomes ou links para explorar a documentação oficial de cada tecnologia:")
+
+    col_b1, col_b2 = st.columns(2)
+
+    with col_b1:
+        st.markdown("""
+        * 🧮 [**NumPy** (numpy.org)](https://numpy.org/)  
+          *O que faz:* A calculadora hiperveloz do Python. Faz contas instantâneas com tabelas de números e matrizes.
+        
+        * 📊 [**Pandas** (pandas.pydata.org)](https://pandas.pydata.org/)  
+          *O que faz:* O "Excel" dos programadores. Organiza tabelas (`DataFrames`), filtra dados e prepara informações para a IA.
+        
+        * 🤖 [**Scikit-Learn** (scikit-learn.org)](https://scikit-learn.org/)  
+          *O que faz:* A caixa de ferramentas de Machine Learning clássico. Já traz prontos algoritmos de Regressão, Árvores de Decisão e Agrupamentos.
+        
+        * 📝 [**NLTK** (nltk.org)](https://www.nltk.org/)  
+          *O que faz:* O professor de línguas da IA. Quebra textos em palavras (*tokens*) e analisa se frases são positivas ou negativas.
+        """)
+
+    with col_b2:
+        st.markdown("""
+        * 👁️ [**OpenCV** (opencv.org)](https://opencv.org/)  
+          *O que faz:* Os olhos da Inteligência Artificial. Transforma fotos e vídeos em matrizes numéricas para detectar objetos e rostos.
+        
+        * 🧠 [**OpenAI API Docs** (platform.openai.com/docs)](https://platform.openai.com/docs/)  
+          *O que faz:* O cabo de conexão com grandes modelos generativos na nuvem (como o ChatGPT) para criar assistentes inteligentes.
+        
+        * 🌐 [**Streamlit** (streamlit.io)](https://streamlit.io/)  
+          *O que faz:* O construtor de telas mágicas. Converte scripts simples de Python neste painel web interativo sem precisar programar HTML ou CSS!
+        """)
+
+    st.markdown("---")
+    st.success("👈 Escolha qualquer exemplo no menu lateral para experimentar a IA na prática!")
     exibir_rodape_educacional()
 
 # =========================================================================================
-# MÓDULO 1: REGRESSÃO LINEAR (SORVETERIA)
+# MÓDULO 1: REGRESSÃO LINEAR (SORVETERIA) - EXPLICAÇÃO DETALHADA E DIDÁTICA
 # • Item SENAI: 2.1.1 Aprendizado Supervisionado -> Regressão
 # • Teoria: A Regressão descobre uma reta matemática para prever um número contínuo.
-# • X = [Temperatura do dia em °C]  |  y = [Quantidade de Sorvetes Vendidos]
 # =========================================================================================
 elif menu == "🍦 1. Regressão (Vendas de Sorvete)":
     st.title("🍦 Módulo 1: Regressão Linear (Prevendo Números)")
-    st.caption("Biblioteca usada: `sklearn.linear_model.LinearRegression`")
-    
-    with st.expander("📖 Entenda a Teoria em Nível Humano (Clique para abrir)"):
-        st.markdown("""
-        * **O que a Regressão faz?** Ela prevê **quantidades numéricas** (preços, vendas, temperaturas).
-        * **Analogia do Dia a Dia:** Todo mundo sabe que quanto mais quente o dia, mais picolés a sorveteria vende. A IA apenas encontra a fórmula matemática exata dessa relação.
-        * **O que é X?** A Temperatura prevista (°C).
-        * **O que é y?** A quantidade de sorvetes que serão vendidos.
-        """)
+    st.caption("Biblioteca usada: [`sklearn.linear_model.LinearRegression`](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html)")
 
-    # 1. Base em listas simples
-    X_temp = [[18], [22], [26], [30], [35]] # Dias frios a muito quentes
-    y_vendas = [40,  65,  90, 130, 180]    # Sorvetes vendidos
-    
-    # 2. Treinando a IA
+    # 1. Base histórica de dados (X e y)
+    X_temp = [[18], [22], [26], [30], [35]]  # Temperatura do dia em °C (Entrada / Causa)
+    y_vendas = [40, 65, 90, 130, 180]        # Sorvetes vendidos no dia (Saída / Consequência)
+
+    # 2. Treinamento do Modelo Matemático
     modelo_sorvete = LinearRegression()
     modelo_sorvete.fit(X_temp, y_vendas)
-    
-    st.markdown("---")
-    st.markdown("### 🧪 Teste Prático do Modelo:")
-    temp_escolhida = st.slider("Escolha a temperatura prevista para amanhã (°C):", 15, 42, 32)
-    
-    # 3. Fazendo a previsão
-    previsao = modelo_sorvete.predict([[temp_escolhida]])[0]
-    st.success(f"📈 Previsão da IA: Com **{temp_escolhida}°C**, a sorveteria deve vender aproximadamente **{int(previsao)} sorvetes**!")
-    
-    # Gráfico simples
-    df_graf = pd.DataFrame({'Temperatura': [18, 22, 26, 30, 35], 'Vendas': y_vendas})
-    fig = px.scatter(df_graf, x='Temperatura', y='Vendas', title="Relação Matemática: Calor x Vendas", trendline="ols")
-    st.plotly_chart(fig, use_container_width=True)
+
+    # 3. Informações extraídas do modelo treinado
+    inclinacao = modelo_sorvete.coef_[0]
+    intercepto = modelo_sorvete.intercept_
+
+    # Navegação por Abas para facilitar a compreensão do aluno
+    aba_simulador, aba_passos, aba_codigo = st.tabs([
+        "🎮 Simulador Interativo & Gráfico",
+        "🧭 Os 4 Passos da IA (Para Leigos)",
+        "💻 Código Explicado Linha por Linha"
+    ])
+
+    with aba_simulador:
+        st.subheader("🧪 Teste o Modelo em Tempo Real")
+        st.write("Mova o controle deslizante abaixo para simular a previsão do tempo de amanhã e ver a decisão da IA:")
+
+        temp_escolhida = st.slider("Escolha a temperatura prevista para amanhã (°C):", 15, 42, 32)
+        previsao = modelo_sorvete.predict([[temp_escolhida]])[0]
+
+        # Métricas visuais
+        c_m1, c_m2, c_m3 = st.columns(3)
+        c_m1.metric("🌡️ Temperatura Escolhida", f"{temp_escolhida} °C")
+        c_m2.metric("📈 Previsão de Vendas", f"{int(previsao)} sorvetes")
+        c_m3.metric("🔥 Impacto do Calor", f"+{inclinacao:.1f} un./°C", help="A cada 1°C extra, vendemos essa quantidade a mais em média!")
+
+        st.success(f"🎯 **Resultado da Previsão:** Com a temperatura de **{temp_escolhida}°C**, o dono da sorveteria deve preparar cerca de **{int(previsao)} sorvetes** para atender à demanda!")
+
+        # Gráfico interativo com a reta e o ponto de previsão
+        df_historico = pd.DataFrame({'Temperatura': [18, 22, 26, 30, 35], 'Vendas': y_vendas})
+        fig = px.scatter(
+            df_historico,
+            x='Temperatura',
+            y='Vendas',
+            title="Histórico de Vendas (Pontos Azuis) vs. Tendência da IA (Linha)",
+            labels={'Temperatura': 'Temperatura do Dia (°C)', 'Vendas': 'Sorvetes Vendidos'},
+            trendline="ols"
+        )
+        # Adicionar o ponto da previsão do usuário no gráfico
+        fig.add_scatter(
+            x=[temp_escolhida],
+            y=[previsao],
+            mode='markers',
+            marker=dict(size=14, color='red', symbol='star'),
+            name=f'Sua Previsão ({temp_escolhida}°C → {int(previsao)} un.)'
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    with aba_passos:
+        st.subheader("📖 Como a Regressão Linear Funciona? (Sem Complicação)")
+        
+        st.markdown("""
+        > 💡 **Analogia da Vida Real:**  
+        > Imagine que você trabalha em uma sorveteria. Você percebe que nos dias frios de 18°C a loja fica vazia, mas quando faz 35°C tem fila na porta.  
+        > Você não precisa ser um gênio da matemática para deduzir a regra: **quanto mais calor, mais sorvete se vende**.  
+        > A **Regressão Linear** é o robô que acha a **régua matemática exata** que liga esses dois pontos para prever qualquer dia futuro!
+        """)
+
+        st.markdown("---")
+        st.markdown("### 🧩 Os 4 Passos Fundamentais de Qualquer Machine Learning:")
+
+        p1, p2 = st.columns(2)
+        with p1:
+            st.markdown("""
+            #### 1️⃣ Separação dos Dados (X e y)
+            Para ensinar uma máquina, precisamos separar a informação em dois lados:
+            * **$X$ (A Pista / Entrada):** É o dado que já conhecemos antes do dia começar (a **Temperatura** do termômetro em °C).
+            * **$y$ (A Resposta / Alvo):** É o que queremos descobrir ou prever (a **Quantidade de Sorvetes Vendidos**).
+            * *Por que separar?* Porque a IA precisa entender qual dado é a **causa** e qual dado é o **efeito**.
+            """)
+
+            st.markdown("""
+            #### 2️⃣ Treinamento do Modelo (`.fit()`)
+            * Na programação, treinar significa **aprender a regra**.
+            * O comando `.fit(X, y)` faz o computador olhar o histórico e encontrar a melhor linha reta que passa no meio dos dados.
+            * Ele descobre a fórmula:  
+              $$\\text{Vendas} = (\\text{Inclinação} \\times \\text{Temperatura}) + \\text{Base}$$
+            * No nosso caso, a IA calculou que a cada **+1°C**, vendemos cerca de **8 sorvetes a mais**!
+            """)
+
+        with p2:
+            st.markdown("""
+            #### 3️⃣ Previsão / Inferência (`.predict()`)
+            * Uma vez treinada, a IA não precisa mais do histórico antigo. Ela guardou a fórmula na memória!
+            * O comando `.predict([[32]])` faz a pergunta: *"Se amanhã fizer 32°C, o que vai acontecer?"*.
+            * A IA aplica a fórmula aprendida instantaneamente e devolve a resposta estimada.
+            """)
+
+            st.markdown("""
+            #### 4️⃣ Análise e Tomada de Decisão
+            * **O que fazemos com o número previsto?** O gerente da sorveteria pode planejar as compras de leite, frutas e a escala de funcionários para não faltar produto nem haver desperdício!
+            * **Validação:** Olhamos o gráfico para verificar se os pontos reais estão próximos da linha reta calculada.
+            """)
+
+    with aba_codigo:
+        st.subheader("💻 O Código Python Linha por Linha")
+        st.write("Veja como cada etapa explicada acima é escrita de forma simples em Python:")
+
+        st.code("""
+# ETAPA 1: SEPARAÇÃO DOS DADOS
+# X são as pistas (temperatura) em formato de tabela [[linha1], [linha2]...]
+X = [[18], [22], [26], [30], [35]]
+
+# y são os resultados reais que aconteceram (sorvetes vendidos)
+y = [40, 65, 90, 130, 180]
+
+# ETAPA 2: ESCOLHA DO MODELO E TREINAMENTO
+from sklearn.linear_model import LinearRegression
+
+# Criamos uma folha em branco com o cérebro da Regressão Linear
+modelo = LinearRegression()
+
+# O comando .fit() é o TREINAMENTO (a IA analisa X e y e descobre a regra)
+modelo.fit(X, y)
+
+# ETAPA 3: PREVISÃO (INFERÊNCIA)
+# Perguntamos para a IA o resultado de um dia novo que ela nunca viu:
+dia_quente = [[32]]
+previsao = modelo.predict(dia_quente)
+
+# ETAPA 4: ANÁLISE DO RESULTADO
+print(f"Com 32°C, a previsão é vender {previsao[0]:.0f} sorvetes!")
+        """, language="python")
+
+        st.info("💡 **Dica de Ouro:** O segredo do Scikit-Learn é que quase todos os modelos funcionam sempre no mesmo trio: **Criar o modelo** ➡️ **`.fit()` para treinar** ➡️ **`.predict()` para prever**!")
+
     exibir_rodape_educacional()
 
 # =========================================================================================
