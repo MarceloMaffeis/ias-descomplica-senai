@@ -669,6 +669,32 @@ elif menu == "🎓 4. Deep Learning (Previsão de Notas)":
         if estudo_in >= 6 and sono_in <= 4:
             st.info("💡 **Aviso da Rede Neural:** Estudar muito sob privação severa de sono não compensa matematicamente; os neurônios captaram a curva de rendimento decrescente!")
 
+        # Gráfico interativo de dispersão mostrando o histórico e o aluno simulado
+        df_historico_dl = pd.DataFrame({
+            'Horas de Estudo': [1, 2, 4, 6, 5, 3, 7],
+            'Horas de Sono': [5, 7, 8, 3, 8, 4, 7],
+            'Nota': y_notas
+        })
+        fig_dl = px.scatter(
+            df_historico_dl,
+            x='Horas de Estudo',
+            y='Horas de Sono',
+            color='Nota',
+            size=[14] * 7,
+            title="Mapa de Rendimento: Estudo (X) vs. Sono (Y) e Notas Históricas (Cor)",
+            labels={'Horas de Estudo': 'Horas de Estudo', 'Horas de Sono': 'Horas de Sono', 'Nota': 'Nota (0 a 10)'},
+            color_continuous_scale="Viridis",
+            range_color=[0, 10]
+        )
+        fig_dl.add_scatter(
+            x=[estudo_in],
+            y=[sono_in],
+            mode='markers',
+            marker=dict(size=18, color='red', symbol='star'),
+            name=f'Sua Simulação ({estudo_in}h estudo, {sono_in}h sono → Nota {nota_estimada:.1f})'
+        )
+        st.plotly_chart(fig_dl, use_container_width=True)
+
     with aba_passos:
         st.subheader("📖 Como o Deep Learning Funciona? (Sem Complicação)")
         st.markdown("""
@@ -760,18 +786,31 @@ elif menu == "🍔 5. PLN (Avaliações do iFood)":
         st.subheader("🧪 Simulador de Atendimento ao Cliente do Restaurante")
         st.write("Digite uma mensagem real ou use os botões rápidos para testar a interpretação da IA:")
 
-        # Botões rápidos para testes
-        b1, b2, b3 = st.columns(3)
-        msg_exemplo = "A pizza estava uma delícia, quentinha e a entrega foi muito rápida!"
-        if b1.button("🟢 Testar Elogio Apaixonado"):
+        # Inicialização do estado de texto se ainda não existir
+        if 'texto_pln' not in st.session_state:
+            st.session_state['texto_pln'] = "A pizza estava uma delícia, quentinha e a entrega foi muito rápida!"
+
+        # Funções de callback para os botões rápidos atualizarem o texto sem conflitos
+        def definir_elogio():
             st.session_state['texto_pln'] = "A pizza estava uma delícia, muito saborosa e o motoboy foi rápido!"
-        if b2.button("🔴 Testar Reclamação Severa"):
+
+        def definir_reclamacao():
             st.session_state['texto_pln'] = "A comida atrasou mais de uma hora, o refrigerante veio quente e o lanche estava frio e horrível!"
-        if b3.button("🟡 Testar Avaliação Mista"):
+
+        def definir_misto():
             st.session_state['texto_pln'] = "O sabor da pizza é excelente, mas infelizmente demorou muito para chegar."
 
-        texto_atual = st.session_state.get('texto_pln', msg_exemplo)
-        comentario = st.text_area("Mensagem enviada pelo cliente no app:", texto_atual, height=100)
+        # Botões rápidos para testes com on_click
+        b1, b2, b3 = st.columns(3)
+        b1.button("🟢 Testar Elogio Apaixonado", on_click=definir_elogio)
+        b2.button("🔴 Testar Reclamação Severa", on_click=definir_reclamacao)
+        b3.button("🟡 Testar Avaliação Mista", on_click=definir_misto)
+
+        comentario = st.text_area(
+            "Mensagem enviada pelo cliente no app:",
+            value=st.session_state['texto_pln'],
+            height=100
+        )
 
         # Processamento simples em linguagem natural
         tokens = comentario.lower().replace('.', ' ').replace('!', ' ').replace(',', ' ').replace('?', ' ').split()
@@ -784,6 +823,11 @@ elif menu == "🍔 5. PLN (Avaliações do iFood)":
         c_pln1.metric("👍 Palavras Felizes", len(pos), help=f"Encontradas: {pos}")
         c_pln2.metric("👎 Palavras Críticas", len(neg), help=f"Encontradas: {neg}")
         c_pln3.metric("⚖️ Saldo Emocional", f"{saldo_emocional:+d}")
+
+        # Termômetro visual de sentimento (normalizado entre 0.0 e 1.0)
+        progresso_sentimento = min(1.0, max(0.0, (saldo_emocional + 3) / 6.0))
+        st.caption(f"🌡️ **Termômetro Emocional:** Saldo {saldo_emocional:+d}")
+        st.progress(progresso_sentimento)
 
         if saldo_emocional > 0:
             st.success(f"🟢 **CLIENTE SATISFEITO!** A IA detectou termos elogiosos: `{pos}`. Nenhuma ação corretiva urgente necessária.")
@@ -929,6 +973,13 @@ elif menu == "📸 6. Visão Computacional (Matriz de Imagem)":
             st.dataframe(df_pixels, use_container_width=True)
             st.info(f"📊 Brilho médio dos 25 pixels: **{matriz_processada.mean():.1f} / 255.0**")
 
+            # Aplicação Industrial SENAI: Inspeção Automática de Qualidade
+            pixels_acesos = int((matriz_processada >= 200).sum())
+            if pixels_acesos >= 5:
+                st.success(f"✅ **Controle de Qualidade:** Peça APROVADA! ({pixels_acesos} pixels claros detectados)")
+            else:
+                st.error(f"❌ **Controle de Qualidade:** Peça REJEITADA! (Apenas {pixels_acesos} pixels claros detectados)")
+
     with aba_passos:
         st.subheader("📖 Como a Visão Computacional Funciona? (Sem Complicação)")
         st.markdown("""
@@ -1030,7 +1081,6 @@ elif menu == "🍳 7. IA Generativa (Chef da Geladeira)":
 
         pedido = st.text_input("💬 Pedido do Usuário:", f"Sugira um {estilo} aproveitando tudo o que tenho!")
 
-        # Exibir o prompt que é montado por trás dos panos
         with st.expander("🔍 Espiar o Prompt Interno montado pelo RAG (Clique para ver a engenharia)"):
             st.code(f"""
 [SISTEMA]: Você é um Chef especialista em culinária sustentável e economia doméstica.
@@ -1039,24 +1089,78 @@ elif menu == "🍳 7. IA Generativa (Chef da Geladeira)":
 [PERGUNTA DO USUÁRIO]: {pedido}
             """, language="markdown")
 
+        with st.expander("🔑 Conexão com API Real da OpenAI (Opcional)"):
+            st.caption("Se tiver uma chave da OpenAI, insira abaixo para ver um LLM responder ao vivo. Se deixar em branco, o sistema usará o motor pedagógico de RAG:")
+            chave_api_opcional = st.text_input("OpenAI API Key:", type="password", help="Deixe vazio para usar a simulação pedagógica")
+
         if st.button("👨‍🍳 Gerar Receita com IA Generativa", type="primary"):
-            st.success(f"""
-            ### 🍽️ Sugestão Personalizada do Chef IA:
-            
-            🍳 **Omelete Cremosa de Frigideira com Queijo e Tomate Fresco**
-            
-            * **Tempo de Preparo:** 5 a 7 minutos
-            * **Ingredientes Utilizados:** Exatamente os informados (`{itens_geladeira}`).
-            
-            **Passo a Passo:**
-            1. Em um prato, quebre os **2 ovos** e bata ligeiramente com um garfo até formar uma mistura homogênea.
-            2. Pique o **meio tomate** em cubinhos pequenos e corte as **fatias de queijo** em tiras.
-            3. Derreta uma colher de **manteiga** na frigideira antiaderente em fogo médio.
-            4. Despeje os ovos batidos, distribua os cubos de tomate e cubra com o queijo.
-            5. Dobre a omelete ao meio quando a base estiver firme e deixe o queijo derreter por 1 minuto.
-            
-            *✅ Desperdício Zero: 100% dos seus ingredientes foram aproveitados sem precisar ir ao mercado!*
-            """)
+            resposta_gerada = None
+
+            # Tenta chamada real se uma chave foi fornecida
+            if chave_api_opcional.strip():
+                try:
+                    with st.spinner("Conectando ao modelo GPT na nuvem..."):
+                        cliente = OpenAI(api_key=chave_api_opcional.strip())
+                        chat = cliente.chat.completions.create(
+                            model="gpt-4o-mini",
+                            messages=[
+                                {"role": "system", "content": "Você é um chef sustentável. Responda em português de forma breve usando APENAS os ingredientes fornecidos no contexto."},
+                                {"role": "user", "content": f"Ingredientes disponíveis: {itens_geladeira}. Pedido: {pedido}"}
+                            ],
+                            max_tokens=300
+                        )
+                        resposta_gerada = chat.choices[0].message.content
+                except Exception as err:
+                    st.warning(f"⚠️ Não foi possível conectar à API da OpenAI ({err}). Alternando para o motor pedagógico local...")
+
+            # Motor dinâmico pedagógico local (garante que usa os itens digitados sem alucinar)
+            if not resposta_gerada:
+                itens_limpos = [i.strip() for i in itens_geladeira.replace(' e ', ',').replace(';', ',').split(',') if i.strip()]
+                if not itens_limpos:
+                    itens_limpos = ["ingredientes disponíveis"]
+                
+                principal = itens_limpos[0].capitalize()
+                secundarios = ", ".join(itens_limpos[1:]) if len(itens_limpos) > 1 else "temperos a gosto"
+                
+                if "Fitness" in estilo:
+                    nome_prato = f"🥗 Preparado Leve e Saudável de {principal}"
+                    tempo = "10 a 15 minutos"
+                    passo1 = f"Higienize e fatie **{principal}** em porções finas para facilitar o cozimento."
+                    passo2 = f"Misture delicadamente **{secundarios}** para compor uma refeição rica e equilibrada."
+                    passo3 = "Asse ou grelhe em fogo brando com o mínimo de gordura para preservar os nutrientes."
+                elif "Frigideira" in estilo or "Econômico" in estilo:
+                    nome_prato = f"🍳 Salteado Rápido de {principal} na Frigideira"
+                    tempo = "7 a 10 minutos"
+                    passo1 = "Aqueça uma frigideira antiaderente em fogo médio."
+                    passo2 = f"Adicione **{principal}** e refogue por 3 a 4 minutos até dourar uniformemente."
+                    passo3 = f"Incorpore **{secundarios}**, mexa bem para apurar os sabores e sirva quente."
+                else: # Lanche Rápido
+                    nome_prato = f"🥪 Lanche Expresso de {principal}"
+                    tempo = "5 minutos"
+                    passo1 = f"Separe uma porção de **{principal}** em um prato ou tábua."
+                    passo2 = f"Combine com **{secundarios}** para rechear ou montar sua porção rápida."
+                    passo3 = "Aqueça por 2 minutos se preferir crocante e sirva imediatamente sem sujeira."
+
+                st.success(f"""
+                ### 🍽️ Sugestão Personalizada do Chef IA (Ancorada em RAG):
+                
+                🍳 **{nome_prato}**
+                
+                * **Tempo Estimado:** {tempo}
+                * **Ingredientes Ancorados:** `{itens_geladeira}` (Respeitando rigorosamente sua geladeira!)
+                
+                **Passo a Passo de Execução:**
+                1. {passo1}
+                2. {passo2}
+                3. {passo3}
+                
+                *✅ Princípio do RAG Respeitado: 100% dos seus ingredientes foram aproveitados sem nenhuma alucinação externa!*
+                """)
+            else:
+                st.success(f"""
+                ### 🍽️ Resposta Direta do Modelo GPT (Nuvem):
+                {resposta_gerada}
+                """)
 
     with aba_passos:
         st.subheader("📖 Como a IA Generativa e o RAG Funcionam? (Sem Complicação)")
