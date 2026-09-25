@@ -915,20 +915,41 @@ elif menu == "🍔 5. PLN (Avaliações do iFood)":
         "💻 Código Explicado Linha por Linha"
     ])
 
-    palavras_positivas = ["delícia", "rápido", "quentinho", "excelente", "maravilhosa", "ótimo", "amei", "bom", "perfeito", "saboroso"]
-    palavras_negativas = ["frio", "atrasou", "ruim", "horrível", "vazou", "estragado", "péssimo", "demorou", "seco", "cru", "errado"]
+    # Dicionários de Radicais Léxicos e Palavras-Chave de PLN em Português
+    RADICAIS_POSITIVOS = [
+        "bom", "boa", "bons", "boas", "bem", "otim", "ótimo", "ótima", "otimos", "otimas",
+        "excelent", "delic", "delícia", "delicia", "delicioso", "deliciosa", "saboros",
+        "gostos", "gostei", "gosto", "gostou", "ador", "adorei", "am", "amei", "perfeit",
+        "maravilh", "rapido", "rápido", "rapida", "rápida", "rapidez", "quent", "quentinho",
+        "quentinha", "fresc", "fresquinho", "fresca", "suculent", "crocant", "barat",
+        "recomendo", "aprovad", "parabens", "parabéns", "nota 10", "top", "show", "atencios",
+        "educad", "agradavel", "pontual", "caprichad", "sensacional", "espetacular",
+        "maravilha", "bacana", "legal", "supimpa", "favorit", "satisfat", "elogio"
+    ]
+
+    RADICAIS_NEGATIVOS = [
+        "ruim", "ruins", "pessim", "péssimo", "péssima", "pessimos", "pessimas",
+        "horrivel", "horrível", "horriveis", "horríveis", "frio", "fria", "gelad",
+        "atras", "atraso", "atrasou", "atrasada", "atrasado", "demor", "demorou", "demora",
+        "queimad", "cru", "crua", "seco", "seca", "dur", "duro", "dura", "salgad",
+        "estragad", "azed", "podre", "gorduros", "suj", "sujo", "suja", "nojent",
+        "vaz", "vazou", "derram", "derramou", "errad", "falta", "faltou", "faltando",
+        "pior", "caro", "cara", "engano", "decepcion", "nunca mais", "odiei", "grosso",
+        "mal educado", "maleducado", "chato", "reclam", "nojento", "nojenta", "rançoso",
+        "borrachudo", "insosso", "sem sal", "sem sabor", "demorado", "lento", "prejuizo"
+    ]
 
     with aba_simulador:
         st.subheader("🧪 Simulador de Atendimento ao Cliente do Restaurante")
-        st.write("Digite uma mensagem real ou use os botões rápidos para testar a interpretação da IA:")
+        st.write("Digite qualquer frase real ou use os botões rápidos para testar a interpretação da IA:")
 
         # Inicialização do estado de texto se ainda não existir
         if 'texto_pln' not in st.session_state:
-            st.session_state['texto_pln'] = "A pizza estava uma delícia, quentinha e a entrega foi muito rápida!"
+            st.session_state['texto_pln'] = "O sabor da pizza é excelente, mas infelizmente demorou muito para chegar."
 
         # Funções de callback para os botões rápidos atualizarem o texto sem conflitos
         def definir_elogio():
-            st.session_state['texto_pln'] = "A pizza estava uma delícia, muito saborosa e o motoboy foi rápido!"
+            st.session_state['texto_pln'] = "A pizza estava uma delícia, quentinha e o motoboy foi rápido e educado!"
 
         def definir_reclamacao():
             st.session_state['texto_pln'] = "A comida atrasou mais de uma hora, o refrigerante veio quente e o lanche estava frio e horrível!"
@@ -936,22 +957,77 @@ elif menu == "🍔 5. PLN (Avaliações do iFood)":
         def definir_misto():
             st.session_state['texto_pln'] = "O sabor da pizza é excelente, mas infelizmente demorou muito para chegar."
 
+        def definir_limpar():
+            st.session_state['texto_pln'] = ""
+
         # Botões rápidos para testes com on_click
+        st.markdown("**💡 Exemplos Prontos de Clientes para Testar com 1 Clique:**")
         b1, b2, b3 = st.columns(3)
-        b1.button("🟢 Testar Elogio Apaixonado", on_click=definir_elogio)
-        b2.button("🔴 Testar Reclamação Severa", on_click=definir_reclamacao)
-        b3.button("🟡 Testar Avaliação Mista", on_click=definir_misto)
+        b1.button("🟢 Elogio Apaixonado", on_click=definir_elogio, use_container_width=True)
+        b2.button("🔴 Reclamação Severa", on_click=definir_reclamacao, use_container_width=True)
+        b3.button("🟡 Avaliação Mista", on_click=definir_misto, use_container_width=True)
 
         comentario = st.text_area(
-            "Mensagem enviada pelo cliente no app:",
+            "✍️ Digite qualquer frase ou avaliação de cliente para a IA analisar:",
             value=st.session_state['texto_pln'],
-            height=100
+            height=100,
+            help="Digite qualquer texto em português e clique no botão abaixo para analisar o sentimento!"
         )
+        st.session_state['texto_pln'] = comentario
 
-        # Processamento simples em linguagem natural
-        tokens = comentario.lower().replace('.', ' ').replace('!', ' ').replace(',', ' ').replace('?', ' ').split()
-        pos = [p for p in tokens if p in palavras_positivas]
-        neg = [p for p in tokens if p in palavras_negativas]
+        col_act1, col_act2 = st.columns([3, 1])
+        with col_act1:
+            btn_analisar = st.button("🚀 Analisar Mensagem com PLN (Processar Frase)", type="primary", use_container_width=True)
+        with col_act2:
+            st.button("🗑️ Limpar Texto", on_click=definir_limpar, use_container_width=True)
+
+        # Tokenização e Análise Léxica Avançada de PLN (com suporte a qualquer frase e negação)
+        texto_limpo = comentario.lower().replace('.', ' ').replace('!', ' ').replace(',', ' ').replace('?', ' ').replace(';', ' ')
+        tokens = texto_limpo.split()
+        termos_negacao = {"nao", "não", "nunca", "jamais", "nem"}
+
+        pos = []
+        neg = []
+
+        i = 0
+        while i < len(tokens):
+            palavra = tokens[i]
+            tem_negacao_antes = (i > 0 and tokens[i-1] in termos_negacao)
+
+            # Expressões compostas positivas
+            if i < len(tokens) - 1 and f"{palavra} {tokens[i+1]}" in ["nota 10", "muito bom", "muito boa", "super recomendo"]:
+                expressao = f"{palavra} {tokens[i+1]}"
+                if tem_negacao_antes:
+                    neg.append(f"{tokens[i-1]} {expressao}")
+                else:
+                    pos.append(expressao)
+                i += 2
+                continue
+
+            # Expressões compostas negativas
+            if i < len(tokens) - 1 and f"{palavra} {tokens[i+1]}" in ["nunca mais", "sem sabor", "sem sal", "muito ruim", "mal educado"]:
+                expressao = f"{palavra} {tokens[i+1]}"
+                neg.append(expressao)
+                i += 2
+                continue
+
+            # Verificar se a palavra coincide com radicais
+            eh_positivo = any(palavra == rad or (len(palavra) >= 4 and len(rad) >= 4 and palavra.startswith(rad)) for rad in RADICAIS_POSITIVOS)
+            eh_negativo = any(palavra == rad or (len(palavra) >= 4 and len(rad) >= 4 and palavra.startswith(rad)) for rad in RADICAIS_NEGATIVOS)
+
+            if eh_positivo:
+                if tem_negacao_antes:
+                    neg.append(f"{tokens[i-1]} {palavra}") # Ex: "não gostei" vira negativo!
+                else:
+                    pos.append(palavra)
+            elif eh_negativo:
+                if tem_negacao_antes:
+                    pos.append(f"{tokens[i-1]} {palavra}") # Ex: "não atrasou" neutraliza
+                else:
+                    neg.append(palavra)
+
+            i += 1
+
         saldo_emocional = len(pos) - len(neg)
 
         st.markdown("---")
@@ -969,14 +1045,16 @@ elif menu == "🍔 5. PLN (Avaliações do iFood)":
             st.success(f"🟢 **CLIENTE SATISFEITO!** A IA detectou termos elogiosos: `{pos}`. Nenhuma ação corretiva urgente necessária.")
         elif saldo_emocional < 0:
             st.error(f"🔴 **ALERTA DE CLIENTE INSATISFEITO!** A IA detectou reclamações críticas: `{neg}`. Acionar gerente e enviar cupom de desculpas imediatamente!")
+        elif len(pos) > 0 and len(neg) > 0:
+            st.warning(f"🟡 **AVALIAÇÃO MISTA OU EQUILIBRADA:** O cliente pontuou elogios `{pos}` e reclamações `{neg}` simultaneamente.")
         else:
-            st.warning("🟡 **AVALIAÇÃO NEUTRA OU EQUILIBRADA:** O cliente pontuou aspectos positivos e negativos em proporções parecidas.")
+            st.info("⚪ **MENSAGEM INFORMATIVA / NEUTRA:** A IA analisou as palavras e não detectou adjetivos emocionais positivos ou negativos nesta frase. O cliente provavelmente fez uma pergunta ou observação neutra.")
 
         # Métricas de Assertividade e Desempenho do PLN
         total_termos = len(pos) + len(neg)
         polaridade = (len(pos) - len(neg)) / max(1, total_termos) if total_termos > 0 else 0.0
         consistencia = (max(len(pos), len(neg)) / total_termos * 100) if total_termos > 0 else 100.0
-        cobertura = (total_termos / max(1, len(tokens))) * 100
+        cobertura = (total_termos / max(1, len(tokens))) * 100 if len(tokens) > 0 else 0.0
 
         # 🎯 Avaliação de Desempenho e Assertividade da IA
         st.markdown("---")
@@ -1021,8 +1099,9 @@ elif menu == "🍔 5. PLN (Avaliações do iFood)":
             """)
 
             st.markdown("""
-            #### 2️⃣ Remoção de Ruído (Stopwords)
-            * Palavras como *de, para, com, o, a* não têm sentimento próprio. A IA aprende a ignorar essas palavras neutras e focar no que importa.
+            #### 2️⃣ Remoção de Ruído e Radicais (Stemming)
+            * A IA usa radicais para reconhecer variações da mesma palavra: *gostei, gostoso, gostosa* vêm do radical `gost-`.
+            * Trata também palavras de negação: *'não gostei'* inverte a polaridade para crítica!
             """)
 
         with c2:
@@ -1043,17 +1122,29 @@ elif menu == "🍔 5. PLN (Avaliações do iFood)":
         st.subheader("💻 O Código Python Linha por Linha")
         st.code("""
 # ETAPA 1: O TEXTO BRUTO DO CLIENTE
-mensagem = "A entrega atrasou e a pizza chegou fria, péssimo atendimento!"
+mensagem = "O lanche estava muito bom e saboroso, mas a entrega demorou um pouco."
 
-# ETAPA 2: LIMPEZA E TOKENIZAÇÃO (Quebrar em palavras)
-palavras = mensagem.lower().replace(',', ' ').replace('!', ' ').split()
+# ETAPA 2: LIMPEZA E TOKENIZAÇÃO
+palavras = mensagem.lower().replace(',', ' ').replace('!', ' ').replace('.', ' ').split()
 
-# ETAPA 3: DICIONÁRIO DE SENTIMENTOS
-termos_positivos = ["delícia", "quentinho", "rápido", "excelente"]
-termos_negativos = ["frio", "atrasou", "péssimo", "horrível"]
+# ETAPA 3: DICIONÁRIO DE RADICAIS E NEGAÇÃO
+positivos = ["bom", "boa", "sabor", "delic", "otim", "rapid", "quent"]
+negativos = ["ruim", "pessim", "frio", "atras", "demor", "horriv"]
+negacoes = {"nao", "não", "nunca", "jamais"}
 
-elogios = [p for p in palavras if p in termos_positivos]
-criticas = [p for p in palavras if p in termos_negativos]
+elogios = []
+criticas = []
+
+for i, p in enumerate(palavras):
+    tem_negacao = (i > 0 and palavras[i-1] in negacoes)
+    
+    if any(p.startswith(r) for r in positivos):
+        if tem_negacao:
+            criticas.append(f"{palavras[i-1]} {p}") # Negação inverte!
+        else:
+            elogios.append(p)
+    elif any(p.startswith(r) for r in negativos):
+        criticas.append(p)
 
 # ETAPA 4: AVALIAÇÃO DE DESEMPENHO E POLARIDADE (SCORES)
 total = len(elogios) + len(criticas)
@@ -1063,12 +1154,14 @@ consistencia = (max(len(elogios), len(criticas)) / total * 100) if total > 0 els
 print(f"Score de Polaridade: {polaridade:+.2f}")
 print(f"Consistência Emocional: {consistencia:.0f}%")
 
-if polaridade < 0:
-    print(f"Ação Urgente: Cliente insatisfeito detectado! Termos críticos: {criticas}")
+if polaridade > 0:
+    print(f"Cliente Satisfeito! Elogios: {elogios}")
+elif polaridade < 0:
+    print(f"Alerta: Cliente Insatisfeito! Críticas: {criticas}")
 else:
-    print("Cliente satisfeito ou neutro.")
+    print("Avaliação Mista ou Neutra.")
         """, language="python")
-        st.info("💡 **Dica de Ouro:** O PLN moderno evoluiu dessa análise por palavras para modelos de Linguagem Gigantes (LLMs como o GPT e Gemini), que calculam probabilidades contextuais e entendem até ironia e sarcasmo!")
+        st.info("💡 **Dica de Ouro:** O PLN moderno utiliza algoritmos de radicais (*stemming*) e inversão por negação para compreender qualquer frase em português, mesmo com variações verbais ou gírias!")
 
     exibir_rodape_educacional()
 
