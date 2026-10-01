@@ -173,8 +173,8 @@ elif menu == "🍦 1. Regressão (Vendas de Sorvete)":
     st.caption("Biblioteca usada: [`sklearn.linear_model.LinearRegression`](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html)")
 
     # 1. Base histórica de dados (X e y)
-    X_temp = [[18], [22], [26], [30], [35]]  # Temperatura do dia em °C (Entrada / Causa)
-    y_vendas = [40, 65, 90, 130, 180]        # Sorvetes vendidos no dia (Saída / Consequência)
+    X_temp = [[18], [22], [24], [26], [30], [35]]  # Temperatura do dia em °C (Entrada / Causa)
+    y_vendas = [40, 65, 1, 90, 130, 180]        # Sorvetes vendidos no dia (Saída / Consequência)
 
     # 2. Treinamento do Modelo Matemático
     modelo_sorvete = LinearRegression()
