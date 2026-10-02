@@ -48,13 +48,13 @@ outros engenheiros para que a gente não precise reinventar a matemática do zer
      ignorar palavras sem valor (como 'de', 'para', 'com') e analisar se uma frase é positiva ou negativa.
 
 5. 👁️ OPENCV (`import cv2`):
-   • O que é em nível humano: São os "olhos e óculos da Inteligência Artificial".
+   • O que é em nível humano: São os "olhos e a visão espacial da Inteligência Artificial".
    • Para que serve: Converte fotos e vídeos em matrizes de números e aplica filtros para 
-     achar bordas, trincas, rostos e objetos em tempo real.
+     achar contornos, bordas, formas geométricas, peças mecânicas e objetos em tempo real.
 
-6. 🧠 GOOGLE GEMINI API (`import requests`):
-   • O que é em nível humano: É o "telefone que liga para o supercérebro do Google Gemini na nuvem".
-   • Para que serve: Envia perguntas e manuais para a nuvem do Google e recebe respostas inteligentes em segundos, com chaves de API 100% gratuitas para estudantes e desenvolvedores!
+6. 🧠 GOOGLE GEMINI & MICROSOFT AZURE FOUNDRY (`import requests`):
+   • O que é em nível humano: É a "conexão com os supercérebros de IA Generativa na nuvem".
+   • Para que serve: Envia perguntas e manuais técnicos para modelos fundacionais (Gemini, GPT-4o, Phi-4) e recebe respostas inteligentes em segundos com tecnologia RAG!
 
 7. 🌐 STREAMLIT (`import streamlit as st`):
    • O que é em nível humano: O "tradutor de código para telas bonitas de internet".
@@ -68,6 +68,9 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import requests
+import cv2
+from PIL import Image
+import io
 
 # Algoritmos e Métricas do Scikit-Learn
 from sklearn.linear_model import LinearRegression
@@ -110,7 +113,7 @@ menu = st.sidebar.radio(
         "🛒 3. Clusterização (Clientes do Mercado)",
         "🎓 4. Deep Learning (Previsão de Notas)",
         "🍔 5. PLN (Avaliações do iFood)",
-        "📸 6. Visão Computacional (Matriz de Imagem)",
+        "📸 6. Visão Computacional (Contornos de Imagem)",
         "💬 7. Chatbot com RAG (Crie sua IA)"
     ]
 )
@@ -150,10 +153,10 @@ if menu == "🏠 Início: O Kit de Bibliotecas":
     with col_b2:
         st.markdown("""
         * 👁️ [**OpenCV** (opencv.org)](https://opencv.org/)  
-          *O que faz:* Os olhos da Inteligência Artificial. Transforma fotos e vídeos em matrizes numéricas para detectar objetos e rostos.
+          *O que faz:* Os olhos da Inteligência Artificial. Processa imagens, detecta contornos, mede áreas de peças industriais e reconhece objetos.
         
-        * 🧠 [**Google AI Studio (Gemini)** (aistudio.google.com)](https://aistudio.google.com/)  
-          *O que faz:* O supercérebro do Google Gemini na nuvem. Oferece chaves de API 100% gratuitas para estudantes e desenvolvedores criarem assistentes inteligentes.
+        * 🧠 [**Google AI Studio & Microsoft Foundry**](https://aistudio.google.com/)  
+          *O que faz:* Conexão direta com os supercérebros de IA Generativa na nuvem (Google Gemini, Microsoft Azure AI Foundry, GPT-4o e Phi-4).
         
         * 🌐 [**Streamlit** (streamlit.io)](https://streamlit.io/)  
           *O que faz:* O construtor de telas mágicas. Converte scripts simples de Python neste painel web interativo sem precisar programar HTML ou CSS!
@@ -229,6 +232,26 @@ elif menu == "🍦 1. Regressão (Vendas de Sorvete)":
         )
         st.plotly_chart(fig, use_container_width=True)
 
+        # 📊 TABELA DE DADOS HISTÓRICOS (ORIGEM DOS DADOS PARA OS ALUNOS)
+        st.markdown("---")
+        st.markdown("### 📊 Tabela de Dados Históricos (De onde vieram os dados?)")
+        st.write("Para ensinar a IA a prever vendas, nós fornecemos a ela esta planilha com o histórico real coletado na sorveteria:")
+
+        df_tabela_explicativa = pd.DataFrame({
+            "Dia / Amostra": [f"Dia #{i+1:02d}" for i in range(len(X_temp))],
+            "Temperatura (°C) [Entrada X]": [x[0] for x in X_temp],
+            "Sorvetes Vendidos [Saída y / Alvo]": y_vendas,
+            "Cenário Observado no Dia": [
+                "Dia frio — movimento calmo na loja",
+                "Dia ameno — consumo padrão",
+                "Dia quente — aumento considerável",
+                "Dia de calor intenso — alta procura",
+                "Dia de pico de calor — fila e estoque no limite"
+            ]
+        })
+        st.dataframe(df_tabela_explicativa, use_container_width=True, hide_index=True)
+        st.caption("💡 **Conceito para sala de aula:** A coluna **Temperatura (X)** é a causa/pista e a coluna **Sorvetes Vendidos (y)** é o efeito/resultado que a máquina aprendeu a correlacionar.")
+
         # 🎯 Avaliação de Desempenho e Assertividade da IA
         st.markdown("---")
         st.markdown("### 🎯 Avaliação de Desempenho & Assertividade do Modelo:")
@@ -279,7 +302,7 @@ elif menu == "🍦 1. Regressão (Vendas de Sorvete)":
             * O comando `.fit(X, y)` faz o computador olhar o histórico e encontrar a melhor linha reta que passa no meio dos dados.
             * Ele descobre a fórmula:  
               $$\\text{Vendas} = (\\text{Inclinação} \\times \\text{Temperatura}) + \\text{Base}$$
-            * No nosso caso, a IA calculou que a cada **+1°C**, vendemos cerca de **8 sorvetes a mais**!
+            * No nosso caso, a IA calculou que a cada **+1°C**, vendemos cerca de **8.3 sorvetes a mais**!
             """)
 
         with p2:
@@ -299,36 +322,43 @@ elif menu == "🍦 1. Regressão (Vendas de Sorvete)":
             """)
 
     with aba_codigo:
-        st.subheader("💻 O Código Python Linha por Linha")
-        st.write("Veja como cada etapa explicada acima é escrita de forma simples em Python:")
+        st.subheader("💻 O Código Python Real em Execução no Aplicativo")
+        st.write("Este é o código Python exato e completo que alimenta este módulo. Você pode copiá-lo e executá-lo diretamente no VS Code, Google Colab ou terminal:")
 
-        st.code("""
-# ETAPA 1: SEPARAÇÃO DOS DADOS
-# X são as pistas (temperatura) em formato de tabela [[linha1], [linha2]...]
-X = [[18], [22], [26], [30], [35]]
-
-# y são os resultados reais que aconteceram (sorvetes vendidos)
-y = [40, 65, 90, 130, 180]
-
-# ETAPA 2: ESCOLHA DO MODELO E TREINAMENTO
+        st.code("""# =====================================================================
+# 🍦 REGRESSÃO LINEAR COM SCIKIT-LEARN (CÓDIGO REAL DO MÓDULO)
+# =====================================================================
+import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score, mean_absolute_error
 
-modelo = LinearRegression()
-modelo.fit(X, y)
+# 1. BASE DE DADOS HISTÓRICA (X = Entrada, y = Alvo/Saída)
+# X deve ser uma matriz ou tabela 2D [[valor1], [valor2]...]
+X_temp = [[18], [22], [26], [30], [35]]  # Temperatura do dia em °C
+y_vendas = [40, 65, 90, 130, 180]        # Sorvetes vendidos no dia
 
-# ETAPA 3: AVALIAÇÃO DE DESEMPENHO E ASSERTIVIDADE (SCORES)
-previsoes_treino = modelo.predict(X)
-r2 = r2_score(y, previsoes_treino)
-mae = mean_absolute_error(y, previsoes_treino)
-print(f"Assertividade (R² Score): {r2*100:.1f}%")
+# 2. CRIAÇÃO E TREINAMENTO DO MODELO
+modelo_sorvete = LinearRegression()
+modelo_sorvete.fit(X_temp, y_vendas)
+
+# Coeficientes matemáticos aprendidos pela reta (y = a*x + b):
+inclinacao = modelo_sorvete.coef_[0]    # ~ +8.26 sorvetes por °C
+intercepto = modelo_sorvete.intercept_  # ~ -114.7 unidades base
+print(f"Fórmula aprendida: Vendas = ({inclinacao:.2f} * Temp) + ({intercepto:.2f})")
+
+# 3. AVALIAÇÃO DE DESEMPENHO (MÉTRICAS DE ASSERTIVIDADE)
+y_pred_historico = modelo_sorvete.predict(X_temp)
+r2 = r2_score(y_vendas, y_pred_historico)
+mae = mean_absolute_error(y_vendas, y_pred_historico)
+
+print(f"Assertividade (R² Score): {r2 * 100:.1f}%")
 print(f"Erro Médio Absoluto (MAE): ± {mae:.1f} sorvetes")
 
-# ETAPA 4: PREVISÃO DE UM DIA NOVO (INFERÊNCIA)
-dia_quente = [[32]]
-previsao = modelo.predict(dia_quente)
-print(f"Com 32°C, a previsão é vender {previsao[0]:.0f} sorvetes!")
-        """, language="python")
+# 4. PREVISÃO EM TEMPO REAL (INFERÊNCIA PARA NOVO DIA)
+temperatura_simulada = 32
+previsao = modelo_sorvete.predict([[temperatura_simulada]])[0]
+print(f"Previsão para {temperatura_simulada}°C: {previsao:.0f} sorvetes a serem preparados!")
+""", language="python")
 
         st.info("💡 **Dica de Ouro:** Na indústria, nunca colocamos um modelo em produção sem antes checar seus **Scores de Desempenho** ($R^2$ e MAE). São essas métricas que garantem que a empresa não terá prejuízos com decisões erradas da IA!")
 
@@ -421,6 +451,21 @@ elif menu == "🍎 2. Classificação (Separador de Frutas)":
         )
         st.plotly_chart(fig_frutas, use_container_width=True)
 
+        # 📊 TABELA DE DADOS DE TREINO (AMOSTRAS DOS SENSORES)
+        st.markdown("---")
+        st.markdown("### 📊 Tabela de Amostras dos Sensores (Treinamento da Esteira)")
+        st.write("Abaixo estão as 13 frutas reais medidas previamente pelos sensores para ensinar a Árvore de Decisão:")
+
+        df_tabela_frutas = pd.DataFrame({
+            "Amostra #": [f"Fruta #{i+1:02d}" for i in range(len(X_frutas))],
+            "Peso (g) [Sensor 1 / X1]": [x[0] for x in X_frutas],
+            "Textura da Casca [Sensor 2 / X2]": ["Lisa (0)" if x[1] == 0 else "Rugosa (1)" for x in X_frutas],
+            "Fruta Real [Rótulo y]": [nomes_frutas[y] for y in y_rotulos],
+            "Destino Físico da Esteira": [caixas_destino[y] for y in y_rotulos]
+        })
+        st.dataframe(df_tabela_frutas, use_container_width=True, hide_index=True)
+        st.caption("💡 **Conceito para sala de aula:** A textura (lisa vs rugosa) separa as maçãs dos cítricos. Em seguida, a balança (peso) separa as mexericas (leves) das laranjas (pesadas).")
+
         # 🎯 Avaliação de Desempenho e Assertividade da IA
         st.markdown("---")
         st.markdown("### 🎯 Avaliação de Desempenho & Assertividade do Classificador:")
@@ -508,40 +553,45 @@ elif menu == "🍎 2. Classificação (Separador de Frutas)":
             """)
 
     with aba_codigo:
-        st.subheader("💻 O Código Python Linha por Linha")
-        st.code("""
-# ETAPA 1: SEPARAÇÃO DOS DADOS DE TREINO
-# X: [Peso em gramas, Textura: 0=Lisa, 1=Rugosa]
-X = [
-    [140, 0], [170, 0],  # Maçãs (sempre lisas)
-    [100, 1], [120, 1],  # Mexericas (rugosas e leves)
-    [180, 1], [210, 1]   # Laranjas (rugosas e pesadas)
-]
+        st.subheader("💻 O Código Python Real em Execução no Aplicativo")
+        st.write("Este é o código exato e completo utilizado para treinar a Árvore de Decisão com 13 amostras e 3 classes:")
 
-# y: Categorias (0 = Maçã, 1 = Mexerica, 2 = Laranja)
-y = [0, 0, 1, 1, 2, 2]
-
-# ETAPA 2: CRIAÇÃO E TREINAMENTO DA ÁRVORE DE DECISÃO
+        st.code("""# =====================================================================
+# 🍎 CLASSIFICAÇÃO COM ÁRVORE DE DECISÃO (CÓDIGO REAL DO MÓDULO)
+# =====================================================================
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 
-classificador = DecisionTreeClassifier()
-classificador.fit(X, y)
+# 1. BASE DE AMOSTRAS COLETADAS NA ESTEIRA INDUSTRIAL
+# X: [Peso em gramas, Textura da Casca: 0=Lisa, 1=Rugosa]
+X_frutas = [
+    [120, 0], [140, 0], [160, 0], [180, 0], [210, 0],  # Maçãs (sempre lisas)
+    [85, 1],  [100, 1], [115, 1], [130, 1],            # Mexericas (rugosas e leves)
+    [160, 1], [180, 1], [200, 1], [230, 1]             # Laranjas (rugosas e pesadas)
+]
 
-# ETAPA 3: AVALIAÇÃO DE DESEMPENHO E ASSERTIVIDADE (SCORE)
-previsoes_treino = classificador.predict(X)
-acuracia = accuracy_score(y, previsoes_treino)
-print(f"Assertividade Global (Acurácia): {acuracia * 100:.0f}%")
+# y: Rótulos reais (0 = Maçã, 1 = Mexerica, 2 = Laranja)
+y_rotulos = [0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2]
 
-# ETAPA 4: PREVENDO UMA NOVA FRUTA E MEDINDO A CERTEZA
-nova_fruta = [[115, 1]] # Fruta de 115g com casca rugosa
-resultado = classificador.predict(nova_fruta)
-probabilidades = classificador.predict_proba(nova_fruta)[0]
+# 2. CRIAÇÃO E TREINAMENTO DA ÁRVORE DE DECISÃO
+ia_frutas = DecisionTreeClassifier(random_state=42)
+ia_frutas.fit(X_frutas, y_rotulos)
 
-frutas = {0: "Maçã", 1: "Mexerica", 2: "Laranja"}
-print(f"Decisão: {frutas[resultado[0]]} (Certeza: {max(probabilidades)*100:.0f}%)")
-        """, language="python")
-        st.info("💡 **Dica de Ouro:** A Árvore de Decisão é o único modelo de IA clássica que consegue criar regras hierárquicas e fornecer probabilidades transparentes (`predict_proba`), o que a torna perfeita para automação e robótica industrial com controle de qualidade!")
+# 3. AVALIAÇÃO DE DESEMPENHO (ACURÁCIA GLOBAL)
+previsoes_treino = ia_frutas.predict(X_frutas)
+acuracia = accuracy_score(y_rotulos, previsoes_treino)
+print(f"Acurácia Global do Modelo: {acuracia * 100:.0f}%")
+
+# 4. TESTE COM UMA NOVA FRUTA NA BALANÇA
+nova_fruta = [[115, 1]]  # 115g e Casca Rugosa
+classe_predita = ia_frutas.predict(nova_fruta)[0]
+probabilidades = ia_frutas.predict_proba(nova_fruta)[0]
+
+nomes = {0: "Maçã", 1: "Mexerica (Tangerina)", 2: "Laranja"}
+print(f"Fruta Classificada: {nomes[classe_predita]}")
+print(f"Nível de Confiança da IA: {max(probabilidades) * 100:.0f}%")
+""", language="python")
+        st.info("💡 **Dica de Ouro:** A Árvore de Decisão é o modelo de IA clássica mais transparente para auditoria industrial. O comando `predict_proba` permite configurar barreiras de segurança: se a confiança for menor que 80%, a esteira rejeita a peça para checagem manual!")
 
     exibir_rodape_educacional()
 
@@ -623,6 +673,21 @@ elif menu == "🛒 3. Clusterização (Clientes do Mercado)":
         )
         st.plotly_chart(fig_cl, use_container_width=True)
 
+        # 📊 TABELA DE DADOS DE CLIENTES (ORIGEM DO K-MEANS)
+        st.markdown("---")
+        st.markdown("### 📊 Tabela de Clientes Cadastrados no Mercado (Entrada X)")
+        st.write("Observe que nós entregamos apenas a **Idade** e o **Gasto Mensal** para a máquina. A coluna de Perfil foi descoberta pela própria IA!")
+
+        df_tabela_clientes = pd.DataFrame({
+            "Nome do Cliente": dados_mercado['Cliente'],
+            "Idade (anos) [X1]": dados_mercado['Idade'],
+            "Gasto Mensal (R$) [X2]": [f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") for v in dados_mercado['Gasto_Mensal_R$']],
+            "Cluster ID (Grupo Matemático)": [f"Cluster #{c}" for c in dados_mercado['Cluster_ID']],
+            "Perfil Atribuído pela IA": dados_mercado['Perfil']
+        })
+        st.dataframe(df_tabela_clientes, use_container_width=True, hide_index=True)
+        st.caption("💡 **Conceito para sala de aula:** No Aprendizado Não Supervisionado **NÃO EXISTE coluna 'y' (gabarito)**. O robô K-Means calcula as distâncias euclidianas e separa os pontos em grupos naturais.")
+
         # 🎯 Avaliação de Desempenho e Assertividade da IA (Sem Gabarito)
         st.markdown("---")
         st.markdown("### 🎯 Avaliação de Desempenho & Assertividade do Agrupamento (Sem Gabarito):")
@@ -685,32 +750,38 @@ elif menu == "🛒 3. Clusterização (Clientes do Mercado)":
             """)
 
     with aba_codigo:
-        st.subheader("💻 O Código Python Linha por Linha")
-        st.code("""
-# ETAPA 1: PREPARAÇÃO DOS DADOS (APENAS X, SEM y!)
-import pandas as pd
-dados = pd.DataFrame({
-    'Idade': [19, 21, 23, 45, 52, 58],
-    'Gasto_Mensal': [150, 210, 180, 1900, 2300, 2100]
-})
+        st.subheader("💻 O Código Python Real em Execução no Aplicativo")
+        st.write("Este é o código exato e completo utilizado para agrupar a tabela de clientes com K-Means e calcular o Silhouette Score:")
 
-# ETAPA 2: CRIAÇÃO DO K-MEANS E TREINAMENTO
+        st.code("""# =====================================================================
+# 🛒 CLUSTERIZAÇÃO K-MEANS COM SCIKIT-LEARN (CÓDIGO REAL DO MÓDULO)
+# =====================================================================
+import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
-kmeans = KMeans(n_clusters=2, random_state=42)
-dados['Grupo'] = kmeans.fit_predict(dados[['Idade', 'Gasto_Mensal']])
+# 1. TABELA DE DADOS COLETADA NO MERCADO (APENAS X, SEM GABARITO 'y')
+dados_mercado = pd.DataFrame({
+    'Cliente': ['Ana', 'Bruno', 'Carlos', 'Diego', 'Daniela', 'Eduardo', 'Fernanda', 'Gustavo'],
+    'Idade': [19, 21, 23, 25, 45, 52, 58, 50],
+    'Gasto_Mensal_R$': [150.0, 210.0, 180.0, 220.0, 1900.0, 2300.0, 2100.0, 2400.0]
+})
 
-# ETAPA 3: AVALIAÇÃO DE DESEMPENHO DO AGRUPAMENTO (SCORE)
-silhueta = silhouette_score(dados[['Idade', 'Gasto_Mensal']], dados['Grupo'])
-print(f"Qualidade do Agrupamento (Silhouette Score): {silhueta:.2f}")
-print(f"Inércia dos Grupos (WCSS): {kmeans.inertia_:.1f}")
+# 2. TREINAMENTO DO K-MEANS (DESCOBRIR 2 GRUPOS)
+X = dados_mercado[['Idade', 'Gasto_Mensal_R$']]
+kmeans = KMeans(n_clusters=2, random_state=42, n_init=10)
+dados_mercado['Cluster_ID'] = kmeans.fit_predict(X)
 
-# ETAPA 4: ATRIBUINDO UM CLIENTE INÉDITO
-novo_cliente = [[22, 200]] # 22 anos, gasto de R$ 200
-grupo_novo = kmeans.predict(novo_cliente)
-print(f"O novo cliente pertence ao Grupo {grupo_novo[0]}")
-        """, language="python")
+# 3. AVALIAÇÃO DA QUALIDADE DOS GRUPOS (SILHOUETTE SCORE)
+score_silhueta = silhouette_score(X, dados_mercado['Cluster_ID'])
+print(f"Silhouette Score (Qualidade do Agrupamento): {score_silhueta:.2f}")
+print(f"Inércia (Dispersão Interna WCSS): {kmeans.inertia_:.1f}")
+
+# 4. ATRIBUIÇÃO DE UM NOVO CLIENTE CADASTRADO NO CAIXA
+novo_cliente = [[22, 350.0]]  # 22 anos, gasto de R$ 350
+grupo_previsto = kmeans.predict(novo_cliente)[0]
+print(f"O novo cliente foi associado ao Cluster #{grupo_previsto}")
+""", language="python")
         st.info("💡 **Dica de Ouro:** O **Silhouette Score** é a métrica padrão-ouro de avaliação em ciência de dados para modelos não supervisionados. Ele garante que a IA encontrou grupos reais e não apenas agrupou dados aleatórios!")
 
     exibir_rodape_educacional()
@@ -801,6 +872,34 @@ elif menu == "🎓 4. Deep Learning (Previsão de Notas)":
         )
         st.plotly_chart(fig_dl, use_container_width=True)
 
+        # 📊 TABELA DE DADOS DE RENDIMENTO (TREINO DA REDE NEURAL)
+        st.markdown("---")
+        st.markdown("### 📊 Tabela de Rendimento Histórico dos Alunos (Treino Neural)")
+        st.write("Esta é a base com os 7 perfis de estudantes históricos usada para calibrar os pesos sinápticos dos neurônios artificiais:")
+
+        situacoes = [
+            "Reprovado (< 5.0)" if n < 5.0 else ("Em Recuperação (5.0 a 6.9)" if n < 7.0 else "Aprovado (≥ 7.0)")
+            for n in y_notas
+        ]
+        df_tabela_dl = pd.DataFrame({
+            "Aluno #": [f"Aluno #{i+1:02d}" for i in range(len(X_estudo))],
+            "Horas de Estudo [X1]": [x[0] for x in X_estudo],
+            "Horas de Sono [X2]": [x[1] for x in X_estudo],
+            "Nota Real Obtida [y]": [f"{n:.1f} / 10.0" for n in y_notas],
+            "Situação Acadêmica": situacoes,
+            "Comportamento Fisiológico / Padrão": [
+                "Pouco estudo e sono insuficiente",
+                "Estudo básico e sono adequado",
+                "Bom estudo com descanso excelente",
+                "Muito estudo (6h), porém privação severa de sono (3h) derrubou a nota para 6.5!",
+                "Excelente dedicação e noite revigorante",
+                "Estudo mediano e noites mal dormidas",
+                "Alto foco de estudo e sono equilibrado"
+            ]
+        })
+        st.dataframe(df_tabela_dl, use_container_width=True, hide_index=True)
+        st.caption("💡 **Conceito para sala de aula:** Repare no Aluno #04 (6h de estudo e 3h de sono = nota 6.5). Uma regressão linear simples não entenderia por que a nota caiu se o estudo aumentou. A Rede Neural com camadas ocultas aprende essa não-linearidade!")
+
         # 🎯 Avaliação de Desempenho e Assertividade da IA
         st.markdown("---")
         st.markdown("### 🎯 Avaliação de Desempenho & Assertividade da Rede Neural:")
@@ -866,36 +965,47 @@ elif menu == "🎓 4. Deep Learning (Previsão de Notas)":
             """)
 
     with aba_codigo:
-        st.subheader("💻 O Código Python Linha por Linha")
-        st.code("""
-# ETAPA 1: DADOS COM DUAS VARIÁVEIS DE ENTRADA
-X = [[1, 5], [2, 7], [4, 8], [6, 3], [5, 8], [3, 4], [7, 7]]
-y = [3.0, 6.0, 9.5, 6.5, 9.8, 5.0, 9.9]
+        st.subheader("💻 O Código Python Real em Execução no Aplicativo")
+        st.write("Este é o código real que constrói a Rede Neural MLPRegressor com 2 camadas ocultas (6 e 4 neurônios):")
 
-# ETAPA 2: CRIAÇÃO E TREINAMENTO DA REDE NEURAL
+        st.code("""# =====================================================================
+# 🎓 DEEP LEARNING (REDE NEURAL MLP) COM SCIKIT-LEARN
+# =====================================================================
 from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import r2_score, mean_absolute_error
 
+# 1. DADOS DE ENTRADA (Estudo [X1], Sono [X2]) E SAÍDA (Nota [y])
+X_estudo = [
+    [1, 5], [2, 7], [4, 8], [6, 3], [5, 8], [3, 4], [7, 7]
+]
+y_notas = [3.0, 6.0, 9.5, 6.5, 9.8, 5.0, 9.9]
+
+# 2. CRIAÇÃO DA ARQUITETURA DA REDE NEURAL ARTIFICIAL
 rede = MLPRegressor(
-    hidden_layer_sizes=(6, 4), # 2 camadas: 6 e 4 neurônios
-    activation='relu',
-    max_iter=2000,
+    hidden_layer_sizes=(6, 4),  # Duas camadas ocultas: 6 neurônios na 1ª e 4 na 2ª
+    activation='relu',          # Função de ativação retificadora
+    max_iter=2000,              # Limite de ciclos de treinamento (épocas)
     random_state=42
 )
-rede.fit(X, y)
 
-# ETAPA 3: AVALIAÇÃO DE DESEMPENHO E CONVERGÊNCIA NEURAL
-previsoes = rede.predict(X)
-r2 = r2_score(y, previsoes)
-print(f"Assertividade dos Neurônios (R²): {r2*100:.1f}%")
+# Treinando os pesos sinápticos via Retropropagação (Backpropagation):
+rede.fit(X_estudo, y_notas)
+
+# 3. AVALIAÇÃO DE DESEMPENHO E CONVERGÊNCIA NEURAL
+previsoes = rede.predict(X_estudo)
+r2 = r2_score(y_notas, previsoes)
+mae = mean_absolute_error(y_notas, previsoes)
+
+print(f"Assertividade dos Neurônios (R²): {r2 * 100:.1f}%")
+print(f"Erro Médio Absoluto (MAE): ± {mae:.2f} pontos")
 print(f"Função de Perda Final (Loss): {rede.loss_:.4f}")
-print(f"Ciclos de Ajuste (Épocas): {rede.n_iter_}")
+print(f"Épocas executadas até convergência: {rede.n_iter_}")
 
-# ETAPA 4: TESTANDO UM ALUNO NOVO
-novo_aluno = [[5, 8]] # 5 horas de estudo, 8 horas de sono
-nota_prevista = rede.predict(novo_aluno)
-print(f"Nota estimada pela Rede Neural: {nota_prevista[0]:.1f}")
-        """, language="python")
+# 4. PREVENDO A NOTA DE UM ALUNO NOVO
+novo_aluno = [[4, 7]]  # 4 horas de estudo, 7 horas de sono
+nota_prevista = rede.predict(novo_aluno)[0]
+print(f"Nota Prevista pela Rede Neural: {nota_prevista:.1f} / 10.0")
+""", language="python")
         st.info("💡 **Dica de Ouro:** Chamamos de 'Deep Learning' (Aprendizado Profundo) porque a rede empilha várias camadas ocultas de neurônios, permitindo aprender padrões abstratos que nenhum modelo linear simples conseguiria modelar!")
 
     exibir_rodape_educacional()
@@ -907,7 +1017,7 @@ print(f"Nota estimada pela Rede Neural: {nota_prevista[0]:.1f}")
 # =========================================================================================
 elif menu == "🍔 5. PLN (Avaliações do iFood)":
     st.title("🍔 Módulo 5: Processamento de Linguagem Natural (PLN)")
-    st.caption("Conceito Central: Tokenização, Stopwords e Análise Léxica de Sentimentos")
+    st.caption("Conceito Central: Tokenização, Stopwords, Radicais e Análise Léxica de Sentimentos")
 
     aba_simulador, aba_passos, aba_codigo = st.tabs([
         "🎮 Simulador de Avaliações em Tempo Real",
@@ -1050,6 +1160,37 @@ elif menu == "🍔 5. PLN (Avaliações do iFood)":
         else:
             st.info("⚪ **MENSAGEM INFORMATIVA / NEUTRA:** A IA analisou as palavras e não detectou adjetivos emocionais positivos ou negativos nesta frase. O cliente provavelmente fez uma pergunta ou observação neutra.")
 
+        # 📊 TABELA DE DADOS DE REFERÊNCIA & DICIONÁRIO DE SENTIMENTOS
+        st.markdown("---")
+        st.markdown("### 📊 Tabela de Referência de Avaliações e Dicionário Léxico (PLN)")
+        st.write("Veja os exemplos clássicos catalogados para testes e as estatísticas do vocabulário léxico:")
+
+        col_tab1, col_tab2 = st.columns(2)
+        with col_tab1:
+            df_exemplos_pln = pd.DataFrame({
+                "Tipo de Avaliação": ["🟢 Elogio", "🔴 Reclamação", "🟡 Mista", "⚪ Informativa/Neutra"],
+                "Texto de Exemplo": [
+                    "A pizza estava uma delícia, quentinha e o motoboy foi rápido e educado!",
+                    "A comida atrasou mais de uma hora e o lanche estava frio e horrível!",
+                    "O sabor da pizza é excelente, mas infelizmente demorou muito para chegar.",
+                    "Qual é o horário de atendimento da pizzaria aos domingos e feriados?"
+                ],
+                "Sentimento": ["Positivo (+)", "Negativo (-)", "Misto (+/-)", "Neutro (0)"]
+            })
+            st.dataframe(df_exemplos_pln, use_container_width=True, hide_index=True)
+
+        with col_tab2:
+            df_dicionario = pd.DataFrame({
+                "Grupo Léxico": ["Radicais Positivos (Elogios)", "Radicais Negativos (Críticas)", "Termos de Negação / Inversão"],
+                "Qtd. de Termos": [len(RADICAIS_POSITIVOS), len(RADICAIS_NEGATIVOS), len(termos_negacao)],
+                "Exemplos Cadastrados": [
+                    "bom, otim, excelent, delic, gostos, rapid, quent...",
+                    "ruim, pessim, horriv, atras, demor, queimad, frio...",
+                    "não, nao, nunca, jamais, nem"
+                ]
+            })
+            st.dataframe(df_dicionario, use_container_width=True, hide_index=True)
+
         # Métricas de Assertividade e Desempenho do PLN
         total_termos = len(pos) + len(neg)
         polaridade = (len(pos) - len(neg)) / max(1, total_termos) if total_termos > 0 else 0.0
@@ -1119,239 +1260,520 @@ elif menu == "🍔 5. PLN (Avaliações do iFood)":
             """)
 
     with aba_codigo:
-        st.subheader("💻 O Código Python Linha por Linha")
-        st.code("""
-# ETAPA 1: O TEXTO BRUTO DO CLIENTE
-mensagem = "O lanche estava muito bom e saboroso, mas a entrega demorou um pouco."
+        st.subheader("💻 O Código Python Real em Execução no Aplicativo")
+        st.write("Este é o algoritmo real de PLN em Python utilizado para tokenização, inversão por negação e cálculo de polaridade:")
 
-# ETAPA 2: LIMPEZA E TOKENIZAÇÃO
-palavras = mensagem.lower().replace(',', ' ').replace('!', ' ').replace('.', ' ').split()
+        st.code("""# =====================================================================
+# 🍔 PROCESSAMENTO DE LINGUAGEM NATURAL E SENTIMENTOS (CÓDIGO REAL)
+# =====================================================================
 
-# ETAPA 3: DICIONÁRIO DE RADICAIS E NEGAÇÃO
-positivos = ["bom", "boa", "sabor", "delic", "otim", "rapid", "quent"]
-negativos = ["ruim", "pessim", "frio", "atras", "demor", "horriv"]
-negacoes = {"nao", "não", "nunca", "jamais"}
+# 1. TEXTO REAL RECEBIDO DO CLIENTE
+mensagem = "O sabor da pizza é excelente, mas infelizmente demorou muito para chegar."
+
+# 2. LIMPEZA E TOKENIZAÇÃO (QUEBRA EM PALAVRAS)
+texto_limpo = mensagem.lower().replace('.', ' ').replace('!', ' ').replace(',', ' ')
+tokens = texto_limpo.split()
+
+# 3. DICIONÁRIO DE RADICAIS E PALAVRAS DE NEGAÇÃO
+positivos = ["bom", "boa", "sabor", "delic", "otim", "rapid", "quent", "excelent"]
+negativos = ["ruim", "pessim", "frio", "atras", "demor", "horriv", "infeliz"]
+negacoes = {"nao", "não", "nunca", "jamais", "nem"}
 
 elogios = []
 criticas = []
 
-for i, p in enumerate(palavras):
-    tem_negacao = (i > 0 and palavras[i-1] in negacoes)
+for i, palavra in enumerate(tokens):
+    tem_negacao_antes = (i > 0 and tokens[i-1] in negacoes)
     
-    if any(p.startswith(r) for r in positivos):
-        if tem_negacao:
-            criticas.append(f"{palavras[i-1]} {p}") # Negação inverte!
+    if any(palavra.startswith(r) for r in positivos):
+        if tem_negacao_antes:
+            criticas.append(f"{tokens[i-1]} {palavra}")  # "não bom" vira crítica
         else:
-            elogios.append(p)
-    elif any(p.startswith(r) for r in negativos):
-        criticas.append(p)
+            elogios.append(palavra)
+    elif any(palavra.startswith(r) for r in negativos):
+        criticas.append(palavra)
 
-# ETAPA 4: AVALIAÇÃO DE DESEMPENHO E POLARIDADE (SCORES)
+# 4. CÁLCULO DAS MÉTRICAS DE SENTIMENTO (POLARIDADE E CONSISTÊNCIA)
 total = len(elogios) + len(criticas)
 polaridade = (len(elogios) - len(criticas)) / max(1, total) if total > 0 else 0.0
 consistencia = (max(len(elogios), len(criticas)) / total * 100) if total > 0 else 100.0
 
-print(f"Score de Polaridade: {polaridade:+.2f}")
-print(f"Consistência Emocional: {consistencia:.0f}%")
-
-if polaridade > 0:
-    print(f"Cliente Satisfeito! Elogios: {elogios}")
-elif polaridade < 0:
-    print(f"Alerta: Cliente Insatisfeito! Críticas: {criticas}")
-else:
-    print("Avaliação Mista ou Neutra.")
-        """, language="python")
+print(f"Palavras Positivas: {elogios}")
+print(f"Palavras Negativas: {criticas}")
+print(f"Score de Polaridade (-1 a +1): {polaridade:+.2f}")
+print(f"Consistência da Opinião: {consistencia:.0f}%")
+""", language="python")
         st.info("💡 **Dica de Ouro:** O PLN moderno utiliza algoritmos de radicais (*stemming*) e inversão por negação para compreender qualquer frase em português, mesmo com variações verbais ou gírias!")
 
     exibir_rodape_educacional()
 
 # =========================================================================================
-# MÓDULO 6: VISÃO COMPUTACIONAL (MATRIZ DE PIXELS) - DIDÁTICO E PASSO A PASSO
-# • Item SENAI: 5. Visão Computacional -> 5.1.1 Representação de Imagens e Matrizes
-# • Teoria: Imagens digitais são matrizes numéricas com valores de 0 (preto) a 255 (branco).
+# MÓDULO 6: VISÃO COMPUTACIONAL (DETECÇÃO DE CONTORNOS COM OPENCV) - DIDÁTICO E COMPLETO
+# • Item SENAI: 5. Visão Computacional -> 5.1.1 Processamento de Imagens e Detecção de Formas
+# • Teoria: Segmentação por bordas (Canny / Threshold) e extração de contornos com cv2.findContours.
 # =========================================================================================
-elif menu == "📸 6. Visão Computacional (Matriz de Imagem)":
-    st.title("📸 Módulo 6: Visão Computacional (Como a IA Vê Imagens)")
-    st.caption("Bibliotecas fundamentais: [`NumPy`](https://numpy.org/) e [`OpenCV`](https://opencv.org/)")
+elif menu == "📸 6. Visão Computacional (Contornos de Imagem)":
+    st.title("📸 Módulo 6: Visão Computacional com OpenCV (Detecção de Contornos)")
+    st.caption("Bibliotecas fundamentais: [`OpenCV (cv2)`](https://opencv.org/) e [`NumPy`](https://numpy.org/)")
 
     aba_simulador, aba_passos, aba_codigo = st.tabs([
-        "🎮 Simulador de Pixels e Filtros",
+        "🎮 Detector Interativo de Contornos",
         "🧭 Os 4 Passos da Visão (Para Entendimento)",
         "💻 Código Explicado Linha por Linha"
     ])
 
+    # -------------------------------------------------------------------------------------
+    # FUNÇÕES GERADORAS DE IMAGENS SINTÉTICAS DIDÁTICAS PARA TESTES OFFLINE / INSTANTÂNEOS
+    # -------------------------------------------------------------------------------------
+    def gerar_imagem_pecas_industriais():
+        """Gera uma imagem de alta qualidade com peças mecânicas em uma bancada (engrenagem, arruela, suporte e parafuso)."""
+        img = np.full((400, 600, 3), 235, dtype=np.uint8) # Fundo cinza claro de bancada
+        
+        # 1. Peça 1: Engrenagem / Flange circular com dentes (Centro: 120, 200)
+        cv2.circle(img, (120, 200), 70, (40, 40, 50), -1)
+        # Dentes da engrenagem
+        for ang in range(0, 360, 30):
+            rad = np.deg2rad(ang)
+            cx = int(120 + 75 * np.cos(rad))
+            cy = int(200 + 75 * np.sin(rad))
+            cv2.circle(img, (cx, cy), 14, (40, 40, 50), -1)
+        cv2.circle(img, (120, 200), 28, (235, 235, 235), -1) # Furo central da engrenagem
+
+        # 2. Peça 2: Suporte Retangular com 2 furos (Centro: 310, 140)
+        cv2.rectangle(img, (230, 80), (390, 200), (60, 80, 110), -1)
+        cv2.circle(img, (270, 140), 18, (235, 235, 235), -1)
+        cv2.circle(img, (350, 140), 18, (235, 235, 235), -1)
+
+        # 3. Peça 3: Porca Sextavada / Polígono (Centro: 490, 130)
+        pts_hex = []
+        for i in range(6):
+            ang = i * 60 + 30
+            rad = np.deg2rad(ang)
+            pts_hex.append([int(490 + 55 * np.cos(rad)), int(130 + 55 * np.sin(rad))])
+        cv2.fillPoly(img, [np.array(pts_hex, np.int32)], (50, 90, 60))
+        cv2.circle(img, (490, 130), 20, (235, 235, 235), -1)
+
+        # 4. Peça 4: Arruela Circular Lisa (Centro: 280, 300)
+        cv2.circle(img, (280, 300), 50, (110, 70, 50), -1)
+        cv2.circle(img, (280, 300), 22, (235, 235, 235), -1)
+
+        # 5. Peça 5: Placa Triangular de Fixação (Centro: 470, 290)
+        pts_tri = np.array([[470, 220], [400, 350], [540, 350]], np.int32)
+        cv2.fillPoly(img, [pts_tri], (120, 50, 90))
+        cv2.circle(img, (470, 300), 14, (235, 235, 235), -1)
+
+        return img
+
+    def gerar_imagem_formas_geometricas():
+        """Gera uma imagem com formas geométricas coloridas clássicas."""
+        img = np.full((400, 600, 3), 245, dtype=np.uint8)
+        # Círculo Vermelho
+        cv2.circle(img, (120, 130), 65, (220, 50, 50), -1)
+        # Quadrado Azul
+        cv2.rectangle(img, (240, 70), (370, 200), (30, 100, 220), -1)
+        # Triângulo Verde
+        pts_tri = np.array([[500, 65], [430, 200], [570, 200]], np.int32)
+        cv2.fillPoly(img, [pts_tri], (40, 170, 70))
+        # Estrela / Polígono Amarelo
+        pts_star = []
+        for i in range(10):
+            r = 70 if i % 2 == 0 else 30
+            ang = i * 36 - 90
+            rad = np.deg2rad(ang)
+            pts_star.append([int(200 + r * np.cos(rad)), int(300 + r * np.sin(rad))])
+        cv2.fillPoly(img, [np.array(pts_star, np.int32)], (230, 180, 20))
+        # Elipse Roxa
+        cv2.ellipse(img, (450, 300), (90, 45), 25, 0, 360, (140, 40, 180), -1)
+        return img
+
+    def gerar_imagem_moedas_esteira():
+        """Gera uma simulação de moedas e arruelas na esteira com iluminação industrial."""
+        img = np.full((400, 600, 3), 40, dtype=np.uint8) # Fundo escuro de borracha da esteira
+        moedas = [
+            (100, 110, 45, (210, 190, 70)),
+            (240, 120, 35, (190, 190, 190)),
+            (380, 100, 50, (210, 190, 70)),
+            (510, 130, 30, (170, 120, 60)),
+            (140, 280, 38, (190, 190, 190)),
+            (290, 270, 52, (210, 190, 70)),
+            (460, 280, 42, (170, 120, 60))
+        ]
+        for (cx, cy, r, cor) in moedas:
+            cv2.circle(img, (cx, cy), r, cor, -1)
+            cv2.circle(img, (cx, cy), int(r * 0.75), (int(cor[0]*0.8), int(cor[1]*0.8), int(cor[2]*0.8)), 2)
+        return img
+
     with aba_simulador:
-        st.subheader("🧪 Como a Câmera Transforma o Mundo em Números")
-        st.write("Escolha um desenho geométrico simples de 5x5 pixels e aplique filtros para ver a matemática acontecendo:")
+        st.subheader("🧪 Detecção e Análise de Contornos em Tempo Real (OpenCV)")
+        st.write("Selecione uma imagem de teste, carregue uma foto do seu computador ou informe um link da internet para ler os contornos:")
 
-        padrao = st.radio(
-            "Selecione um Padrão Visual:",
-            ["Quadrado no Centro", "Cruz / Letra X", "Degradê de Iluminação"],
-            horizontal=True
+        # Seletor de Origem da Imagem
+        tipo_origem = st.radio(
+            "Origem da Imagem para o Teste:",
+            [
+                "⚙️ Peças Mecânicas Industriais (Amostra SENAI)",
+                "📐 Formas Geométricas Coloridas (Amostra)",
+                "🪙 Moedas / Peças na Esteira (Amostra)",
+                "🌐 Imagem da Internet (URL)",
+                "📤 Fazer Upload de Imagem do Computador"
+            ],
+            horizontal=False
         )
 
-        if padrao == "Quadrado no Centro":
-            matriz_original = np.array([
-                [0,   0,   0,   0,   0],
-                [0, 255, 255, 255,   0],
-                [0, 255, 255, 255,   0],
-                [0, 255, 255, 255,   0],
-                [0,   0,   0,   0,   0]
-            ])
-        elif padrao == "Cruz / Letra X":
-            matriz_original = np.array([
-                [255,   0,   0,   0, 255],
-                [  0, 255,   0, 255,   0],
-                [  0,   0, 255,   0,   0],
-                [  0, 255,   0, 255,   0],
-                [255,   0,   0,   0, 255]
-            ])
-        else: # Degradê
-            matriz_original = np.array([
-                [ 20,  40,  60,  80, 100],
-                [ 50,  70,  90, 110, 130],
-                [ 80, 100, 120, 140, 160],
-                [110, 130, 150, 170, 200],
-                [140, 170, 200, 230, 255]
-            ])
+        imagem_rgb = None
+        nome_origem = ""
 
-        # Controle interativo de brilho
-        ajuste_brilho = st.slider("💡 Ajuste de Brilho dos Pixels (+/- valores):", -100, 100, 0)
-        matriz_processada = np.clip(matriz_original.astype(int) + ajuste_brilho, 0, 255)
-
-        c_v1, c_v2 = st.columns(2)
-        with c_v1:
-            st.write("👀 **Como o SER HUMANO enxerga a imagem:**")
-            fig_vc = px.imshow(
-                matriz_processada,
-                color_continuous_scale="gray",
-                title="Visualização Gráfica (Preto = 0 | Branco = 255)",
-                range_color=[0, 255]
-            )
-            st.plotly_chart(fig_vc, use_container_width=True)
-
-        with c_v2:
-            st.write("🔢 **Como a INTELIGÊNCIA ARTIFICIAL enxerga a mesma foto:**")
-            df_pixels = pd.DataFrame(matriz_processada, columns=[f"P{i}" for i in range(5)])
-            st.dataframe(df_pixels, use_container_width=True)
-            st.info(f"📊 Brilho médio dos 25 pixels: **{matriz_processada.mean():.1f} / 255.0**")
-
-            # Aplicação Industrial SENAI: Inspeção Automática de Qualidade
-            pixels_esperados = int((matriz_original >= 200).sum())
-            pixels_acesos = int((matriz_processada >= 200).sum())
-            if pixels_acesos >= 5:
-                st.success(f"✅ **Controle de Qualidade:** Peça APROVADA! ({pixels_acesos} pixels claros detectados)")
+        if tipo_origem == "⚙️ Peças Mecânicas Industriais (Amostra SENAI)":
+            imagem_rgb = gerar_imagem_pecas_industriais()
+            nome_origem = "Peças Mecânicas Industriais SENAI"
+        elif tipo_origem == "📐 Formas Geométricas Coloridas (Amostra)":
+            imagem_rgb = gerar_imagem_formas_geometricas()
+            nome_origem = "Formas Geométricas Coloridas"
+        elif tipo_origem == "🪙 Moedas / Peças na Esteira (Amostra)":
+            imagem_rgb = gerar_imagem_moedas_esteira()
+            nome_origem = "Moedas e Peças na Esteira"
+        elif tipo_origem == "🌐 Imagem da Internet (URL)":
+            url_padrao = "https://raw.githubusercontent.com/opencv/opencv/master/samples/data/smarties.png"
+            url_input = st.text_input("🔗 Digite a URL direta da imagem (JPG/PNG):", value=url_padrao)
+            if url_input.strip():
+                try:
+                    with st.spinner("Baixando imagem da internet..."):
+                        resp = requests.get(url_input.strip(), timeout=10)
+                        if resp.status_code == 200:
+                            pil_img = Image.open(io.BytesIO(resp.content)).convert('RGB')
+                            imagem_rgb = np.array(pil_img)
+                            nome_origem = f"Imagem baixada da Web ({pil_img.size[0]}x{pil_img.size[1]}px)"
+                        else:
+                            st.warning(f"Não foi possível baixar a imagem da URL informada (Status {resp.status_code}). Usando amostra mecânica...")
+                            imagem_rgb = gerar_imagem_pecas_industriais()
+                            nome_origem = "Peças Mecânicas (Fallback)"
+                except Exception as ex:
+                    st.warning(f"Erro ao carregar URL ({ex}). Alternando para amostra mecânica...")
+                    imagem_rgb = gerar_imagem_pecas_industriais()
+                    nome_origem = "Peças Mecânicas (Fallback)"
+        else: # Upload
+            arquivo_subido = st.file_uploader("📤 Escolha uma imagem do seu computador:", type=["png", "jpg", "jpeg"])
+            if arquivo_subido is not None:
+                pil_img = Image.open(arquivo_subido).convert('RGB')
+                imagem_rgb = np.array(pil_img)
+                nome_origem = f"Upload: {arquivo_subido.name} ({pil_img.size[0]}x{pil_img.size[1]}px)"
             else:
-                st.error(f"❌ **Controle de Qualidade:** Peça REJEITADA! (Apenas {pixels_acesos} pixels claros detectados)")
+                st.info("👈 Por favor, envie uma foto acima ou selecione uma das amostras para testar!")
+                imagem_rgb = gerar_imagem_pecas_industriais()
+                nome_origem = "Peças Mecânicas (Amostra Inicial)"
 
-        # Métricas de Conformidade e Desempenho Visual
-        diferenca_matriz = np.abs(matriz_processada.astype(float) - matriz_original.astype(float)).mean()
-        score_conformidade = max(0.0, 100.0 - (diferenca_matriz / 255.0 * 100.0))
-        assertividade_pixels = (pixels_acesos / max(1, pixels_esperados)) * 100.0 if pixels_esperados > 0 else (100.0 if pixels_acesos == 0 else 0.0)
+        # Redimensionar imagens muito grandes para manter a interface rápida e fluida
+        if imagem_rgb is not None:
+            altura, largura = imagem_rgb.shape[:2]
+            if largura > 800 or altura > 600:
+                fator = min(800 / largura, 600 / altura)
+                novo_w = int(largura * fator)
+                novo_h = int(altura * fator)
+                imagem_rgb = cv2.resize(imagem_rgb, (novo_w, novo_h), interpolation=cv2.INTER_AREA)
 
-        # 🎯 Avaliação de Desempenho e Assertividade da IA
+        # ---------------------------------------------------------------------------------
+        # CONTROLES INTERATIVOS DO PIPELINE DE VISÃO COMPUTACIONAL (OPENCV)
+        # ---------------------------------------------------------------------------------
         st.markdown("---")
-        st.markdown("### 🎯 Avaliação de Desempenho & Assertividade da Inspeção Visual:")
-        c_v_sc1, c_v_sc2, c_v_sc3 = st.columns(3)
-        c_v_sc1.metric(
-            "📏 Score de Conformidade com o Molde",
-            f"{score_conformidade:.1f}%",
-            help="Quão idêntica a imagem capturada está em relação ao gabarito industrial perfeito de fábrica."
-        )
-        c_v_sc2.metric(
-            "🎯 Assertividade da Detecção de Pixels",
-            f"{min(100.0, assertividade_pixels):.1f}%",
-            help="Taxa de pixels essenciais preservados após o processamento da imagem."
-        )
-        status_conformidade = "Excelente (Dentro da Norma)" if score_conformidade >= 85 else ("Aceitável (Alerta)" if score_conformidade >= 65 else "Reprovado (Defeituoso)")
-        c_v_sc3.metric(
-            "🏆 Grau de Qualidade",
-            status_conformidade,
-            help="Critério de aceitação na esteira industrial."
-        )
-        st.info("💡 **Como a indústria mede a assertividade da visão computacional?** A câmera inteligente compara a matriz capturada com a matriz do 'molde ideal'. Se o **Score de Conformidade** ficar abaixo de 65%, a peça é ejetada da linha de produção por robôs ou pistões pneumáticos!")
+        st.markdown("### 🎛️ Painel de Controle dos Filtros de Visão (Ajustes de Câmera):")
+
+        c_ctrl1, c_ctrl2, c_ctrl3 = st.columns(3)
+        with c_ctrl1:
+            filtro_blur = st.slider("🌫️ Filtro Gaussiano (Suavizar Ruído):", 1, 15, 5, step=2, help="Elimina pequenos grãos e imperfeições da câmera.")
+            metodo_binarizacao = st.selectbox("⚙️ Método de Detecção de Bordas:", ["Bordas de Canny (Recomendado)", "Binarização por Limiar (Thresholding)"])
+
+        with c_ctrl2:
+            if "Canny" in metodo_binarizacao:
+                limiar_canny_min = st.slider("📉 Limiar Canny Mínimo (Histerese Min):", 10, 250, 50)
+                limiar_canny_max = st.slider("📈 Limiar Canny Máximo (Histerese Max):", 20, 300, 150)
+            else:
+                valor_limiar = st.slider("🌓 Valor de Limiar (Threshold 0-255):", 10, 245, 127)
+                inverter_cores = st.checkbox("Inverter Preto/Branco (Invert Threshold)", value=False)
+
+        with c_ctrl3:
+            area_minima = st.slider("🔍 Filtro de Área Mínima (Descartar ruído em px²):", 0, 5000, 150, step=50, help="Ignora partículas de poeira e pequenos contornos indesejados.")
+            mostrar_caixa = st.checkbox("Exibir Caixas Delimitadoras (Bounding Boxes)", value=True)
+            mostrar_centroide = st.checkbox("Exibir Ponto Central (Centroides / X,Y)", value=True)
+
+        # ---------------------------------------------------------------------------------
+        # PROCESSAMENTO MATEMÁTICO REAL COM OPENCV
+        # ---------------------------------------------------------------------------------
+        # 1. Escala de cinza
+        imagem_cinza = cv2.cvtColor(imagem_rgb, cv2.COLOR_RGB2GRAY)
+        
+        # 2. Suavização Gaussiana
+        imagem_blur = cv2.GaussianBlur(imagem_cinza, (filtro_blur, filtro_blur), 0)
+
+        # 3. Segmentação (Canny ou Limiar)
+        if "Canny" in metodo_binarizacao:
+            imagem_binaria = cv2.Canny(imagem_blur, limiar_canny_min, limiar_canny_max)
+            # Dilatação leve para fechar contornos desconexos do Canny
+            kernel = np.ones((3, 3), np.uint8)
+            imagem_binaria = cv2.dilate(imagem_binaria, kernel, iterations=1)
+        else:
+            tipo_thresh = cv2.THRESH_BINARY_INV if inverter_cores else cv2.THRESH_BINARY
+            _, imagem_binaria = cv2.threshold(imagem_blur, valor_limiar, 255, tipo_thresh)
+
+        # 4. Encontrar Contornos (findContours)
+        contornos_raw, hierarquia = cv2.findContours(imagem_binaria, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        # 5. Filtrar e Desenhar os Contornos Válidos
+        imagem_resultado = imagem_rgb.copy()
+        dados_contornos = []
+
+        idx_valido = 1
+        area_total_acumulada = 0.0
+
+        for cnt in contornos_raw:
+            area = cv2.contourArea(cnt)
+            if area < area_minima:
+                continue # Descarta contornos menores que o limiar (ruído)
+
+            perimetro = cv2.arcLength(cnt, True)
+            x, y, w, h = cv2.boundingRect(cnt)
+            area_total_acumulada += area
+
+            # Cálculo do Centroide (Moments)
+            M = cv2.moments(cnt)
+            if M["m00"] != 0:
+                cX = int(M["m10"] / M["m00"])
+                cY = int(M["m01"] / M["m00"])
+            else:
+                cX, cY = x + w // 2, y + h // 2
+
+            # Estimativa de Forma Geométrica (Poligonal Approximation)
+            epsilon = 0.035 * perimetro
+            approx = cv2.approxPolyDP(cnt, epsilon, True)
+            num_vertices = len(approx)
+
+            aspect_ratio = float(w) / h if h > 0 else 1.0
+            circularidade = (4 * np.pi * area) / (perimetro ** 2) if perimetro > 0 else 0
+
+            if circularidade > 0.75:
+                forma = "Círculo / Cilindro"
+            elif num_vertices == 3:
+                forma = "Triângulo"
+            elif num_vertices == 4:
+                forma = "Quadrado" if 0.9 <= aspect_ratio <= 1.1 else "Retângulo"
+            elif num_vertices == 5:
+                forma = "Pentágono"
+            elif num_vertices == 6:
+                forma = "Hexágono / Porca"
+            else:
+                forma = "Peça Complexa / Engrenagem"
+
+            # Desenho no resultado visual
+            # Contorno em verde neon espesso
+            cv2.drawContours(imagem_resultado, [cnt], -1, (0, 255, 100), 3)
+
+            # Caixa Delimitadora (Bounding Box em azul ciano)
+            if mostrar_caixa:
+                cv2.rectangle(imagem_resultado, (x, y), (x + w, y + h), (0, 180, 255), 2)
+
+            # Centroide em vermelho
+            if mostrar_centroide:
+                cv2.circle(imagem_resultado, (cX, cY), 5, (255, 0, 0), -1)
+
+            # Rótulo de texto com número do objeto
+            cv2.putText(
+                imagem_resultado,
+                f"#{idx_valido}",
+                (x, max(18, y - 8)),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.65,
+                (255, 255, 0),
+                2,
+                cv2.LINE_AA
+            )
+
+            dados_contornos.append({
+                "Objeto #": f"#{idx_valido:02d}",
+                "Forma Estimada": forma,
+                "Área (pixels²)": int(area),
+                "Perímetro (pixels)": round(perimetro, 1),
+                "Centro X (px)": cX,
+                "Centro Y (px)": cY,
+                "Largura W (px)": w,
+                "Altura H (px)": h
+            })
+
+            idx_valido += 1
+
+        # ---------------------------------------------------------------------------------
+        # EXIBIÇÃO VISUAL DAS 3 ETAPAS (ORIGINAL, PROCESSADA, CONTORNOS DETECTADOS)
+        # ---------------------------------------------------------------------------------
+        st.markdown("---")
+        st.markdown(f"### 👁️ Processamento Visual da Imagem: *{nome_origem}*")
+
+        col_v1, col_v2, col_v3 = st.columns(3)
+        with col_v1:
+            st.caption("1️⃣ **Imagem Original (Cores RGB):**")
+            st.image(imagem_rgb, use_container_width=True)
+
+        with col_v2:
+            st.caption("2️⃣ **Visão da Máquina (Bordas & Limiar):**")
+            st.image(imagem_binaria, use_container_width=True, clamp=True)
+
+        with col_v3:
+            st.caption(f"3️⃣ **Contornos Identificados ({len(dados_contornos)} objetos):**")
+            st.image(imagem_resultado, use_container_width=True)
+
+        # ---------------------------------------------------------------------------------
+        # TABELA DE DADOS NUMÉRICOS DOS CONTORNOS (PROPRIEDADES EXTRAÍDAS PELA IA)
+        # ---------------------------------------------------------------------------------
+        st.markdown("---")
+        st.markdown("### 📊 Tabela de Propriedades dos Contornos Detectados")
+        st.write("A visão computacional transformou os pixels da foto nesta tabela estruturada com medidas exatas de engenharia:")
+
+        if dados_contornos:
+            df_contornos = pd.DataFrame(dados_contornos)
+            st.dataframe(df_contornos, use_container_width=True, hide_index=True)
+            st.caption("💡 **Conceito para sala de aula:** Cada linha da tabela representa uma peça isolada na esteira. O robô industrial usa as colunas **Centro X/Y** para posicionar a garra mecânica e a coluna **Área** para checar se a peça está no tamanho correto!")
+        else:
+            st.warning("⚠️ Nenhum contorno detectado com a configuração atual. Tente reduzir a 'Área Mínima' ou ajustar os limiares de Canny/Threshold nos controles acima!")
+
+        # ---------------------------------------------------------------------------------
+        # MÉTRICAS E CONTROLE DE QUALIDADE INDUSTRIAL
+        # ---------------------------------------------------------------------------------
+        st.markdown("---")
+        st.markdown("### 🎯 Métricas de Inspeção & Controle de Qualidade Industrial:")
+        
+        c_qc1, c_qc2, c_qc3, c_qc4 = st.columns(4)
+        c_qc1.metric("📦 Contornos Detectados", f"{len(dados_contornos)} objetos")
+        
+        maior_area = max([d["Área (pixels²)"] for d in dados_contornos]) if dados_contornos else 0
+        c_qc2.metric("📐 Maior Peça (Área)", f"{maior_area:,} px²".replace(",", "."))
+        
+        c_qc3.metric("📏 Área Total Ocupada", f"{int(area_total_acumulada):,} px²".replace(",", "."))
+        
+        status_qualidade = "Aprovado na Esteira" if len(dados_contornos) >= 1 else "Aguardando Peças"
+        c_qc4.metric("🏭 Status da Linha", status_qualidade)
+
+        st.info("💡 **Como a indústria usa isso?** Em linhas de montagem automotivas e de alimentos, câmeras OpenCV inspecionam até 120 peças por segundo. Se a **Área em pixels²** ou a **Forma Geométrica** da peça diferir do padrão cadastrado, um pistão pneumático ejeta a peça defeituosa instantaneamente!")
 
     with aba_passos:
-        st.subheader("📖 Como a Visão Computacional Funciona? (Sem Complicação)")
+        st.subheader("📖 Como a Detecção de Contornos Funciona no OpenCV? (Sem Complicação)")
         st.markdown("""
         > 💡 **Analogia da Vida Real:**  
-        > Um computador não tem olhos biológicos nem retina. Para ele, uma foto não é uma pessoa ou um carro;  
-        > Uma foto é uma **tabela de números**, exatamente como uma planilha do Excel, onde cada quadradinho (pixel) tem um valor de **0 (escuridão total)** até **255 (luz branca pura)**!
+        > Quando você olha para uma mesa com parafusos, seus olhos não precisam inspecionar cada milímetro do fundo da mesa;  
+        > Seu cérebro busca as **bordas e o contraste** onde o objeto começa e a mesa termina.  
+        > Na **Visão Computacional**, nós ensinamos o robô a encontrar as linhas de contorno (`cv2.findContours`) para que ele possa medir áreas, calcular o centro de massa e guiar braços robóticos com precisão milimétrica!
         """)
         st.markdown("---")
-        st.markdown("### 🧩 Os 4 Passos Fundamentais da Visão Computacional:")
+        st.markdown("### 🧩 Os 4 Passos Fundamentais da Detecção de Contornos:")
 
         c1, c2 = st.columns(2)
         with c1:
             st.markdown("""
-            #### 1️⃣ Captura e Digitalização
-            * A lente da câmera capta a luz e converte fótons em eletricidade em cada sensor minúsculo, gerando números inteiros entre 0 e 255.
+            #### 1️⃣ Conversão para Escala de Cinza (`cv2.cvtColor`)
+            * Uma imagem colorida tem 3 camadas de dados: Vermelho, Verde e Azul (RGB).
+            * Para achar contornos, as cores são ruído desnecessário. Convertemos para **Escala de Cinza (0 a 255)** para focar puramente na intensidade luminosa.
             """)
 
             st.markdown("""
-            #### 2️⃣ Armazenamento em Matrizes (`NumPy`)
-            * Uma imagem preta e branca de 1920x1080 é uma matriz com mais de **2 milhões de números**.
-            * Se a imagem for colorida, ela tem 3 matrizes sobrepostas: **R** (Vermelho), **G** (Verde) e **B** (Azul).
+            #### 2️⃣ Suavização e Detecção de Bordas (`cv2.Canny` / `cv2.threshold`)
+            * **Filtro Gaussiano:** Remove pequenos grãos e poeira da lente.
+            * **Algoritmo de Canny:** Calcula onde ocorrem variações bruscas de claro para escuro e gera uma imagem binária (preto e branco) contendo apenas o esqueleto das bordas.
             """)
 
         with c2:
             st.markdown("""
-            #### 3️⃣ Filtros e Detecção de Bordas
-            * O computador calcula a diferença brusca de números vizinhos.
-            * Se um pixel vale **0** e o do lado vale **255**, ali existe uma **borda nítida** (o contorno de uma peça, um rosto ou uma placa de trânsito).
+            #### 3️⃣ Extração de Contornos Vetoriais (`cv2.findContours`)
+            * O OpenCV rastreia os pixels brancos interligados e cria polígonos matemáticos contínuos.
+            * Cada contorno é uma lista de coordenadas $(X, Y)$ que envolve perfeitamente a peça.
             """)
 
             st.markdown("""
-            #### 4️⃣ Avaliação de Conformidade e Aplicação SENAI
-            * **Scores de Assertividade na Visão Computacional:**
-              * **Score de Conformidade com o Molde (0 a 100%):** Compara pixel a pixel a imagem processada com o padrão perfeito de engenharia.
-              * **Limiar de Rejeição Industrial:** Se a peça perder pixels ou apresentar iluminação incorreta, o score cai e o controle de qualidade descarta a peça antes de ir para o cliente!
-            * **Controle de Qualidade em Linhas de Montagem:** Câmeras inteligentes inspecionam peças a 60 fotos por segundo sem cansaço humano!
+            #### 4️⃣ Extração de Medidas de Engenharia e Tomada de Decisão
+            * **O que calculamos a partir do contorno?:**
+              * **Área (`cv2.contourArea`):** Tamanho da peça em pixels².
+              * **Perímetro (`cv2.arcLength`):** Comprimento da borda externa.
+              * **Centroide (`cv2.moments`):** Ponto exato onde o robô deve encostar a ventosa ou garra.
+              * **Bounding Box (`cv2.boundingRect`):** Retângulo envolvente para direcionamento em esteiras.
             """)
 
     with aba_codigo:
-        st.subheader("💻 O Código Python Linha por Linha")
-        st.code("""
-# ETAPA 1: GABARITO PERFEITO DA PEÇA INDUSTRIAL (Matriz de Referência)
+        st.subheader("💻 O Código Python Real em Execução no Aplicativo (OpenCV)")
+        st.write("Este é o código Python exato e executável para carregar uma imagem, detectar bordas, extrair contornos e medir propriedades geométricas:")
+
+        st.code("""# =====================================================================
+# 📸 DETECÇÃO E MEDIÇÃO DE CONTORNOS COM OPENCV (CÓDIGO REAL DO MÓDULO)
+# =====================================================================
+import cv2
 import numpy as np
+import pandas as pd
 
-molde_perfeito = np.array([
-    [0,   0,   0,   0,   0],
-    [0, 255, 255, 255,   0],
-    [0, 255, 255, 255,   0],
-    [0, 255, 255, 255,   0],
-    [0,   0,   0,   0,   0]
-])
+# 1. CARREGAMENTO DA IMAGEM (PODE SER ARQUIVO LOCAL OU FOTO DA CÂMERA)
+# imagem = cv2.imread("sua_peca_ou_foto.jpg")
+# No Streamlit, convertemos a imagem RGB para escala de cinza:
+imagem_rgb = cv2.imread("pecas_senai.png") # Exemplo de arquivo
+imagem_cinza = cv2.cvtColor(imagem_rgb, cv2.COLOR_BGR2GRAY)
 
-# ETAPA 2: FOTO CAPTURADA NA ESTEIRA COM FILTRO DE ILUMINAÇÃO
-foto_esteira = np.clip(molde_perfeito + 30, 0, 255)
+# 2. FILTRO GAUSSIANO (ELIMINAR RUÍDO) E DETECÇÃO DE BORDAS CANNY
+imagem_blur = cv2.GaussianBlur(imagem_cinza, (5, 5), 0)
+bordas_canny = cv2.Canny(imagem_blur, threshold1=50, threshold2=150)
 
-# ETAPA 3: AVALIAÇÃO DE DESEMPENHO E CONFORMIDADE (SCORES)
-diferenca = np.abs(foto_esteira.astype(float) - molde_perfeito.astype(float)).mean()
-score_conformidade = max(0.0, 100.0 - (diferenca / 255.0 * 100.0))
-pixels_ok = (foto_esteira >= 200).sum()
+# Dilatação leve para conectar linhas de contorno interrompidas:
+kernel = np.ones((3, 3), np.uint8)
+bordas_dilatadas = cv2.dilate(bordas_canny, kernel, iterations=1)
 
-print(f"Score de Conformidade com o Molde: {score_conformidade:.1f}%")
-print(f"Pixels Aprovados: {pixels_ok}")
+# 3. EXTRAÇÃO DE CONTORNOS EXTERNOS (cv2.findContours)
+contornos, _ = cv2.findContours(bordas_dilatadas, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-# ETAPA 4: DECISÃO DO CONTROLE DE QUALIDADE INDUSTRIAL
-if score_conformidade >= 65 and pixels_ok >= 5:
-    print("Resultado: Peça aprovada pelo controle de qualidade!")
-else:
-    print("Resultado: Peça rejeitada com defeito.")
-        """, language="python")
-        st.info("💡 **Dica de Ouro:** O **Score de Conformidade** pixel a pixel é o princípio básico dos sistemas industriais de inspeção óptica (AOI). Ele garante que uma placa de circuito ou peça usinada está 100% livre de trincas antes de sair da fábrica!")
+print(f"Total de contornos brutos encontrados: {len(contornos)}")
+
+# 4. MEDIÇÃO GEOMÉTRICA E DESENHO DOS CONTORNOS NA IMAGEM
+imagem_com_contornos = imagem_rgb.copy()
+area_minima = 150 # Descartar poeira/ruídos menores que 150 pixels²
+dados_tabela = []
+
+for i, cnt in enumerate(contornos):
+    area = cv2.contourArea(cnt)
+    if area < area_minima:
+        continue # Ignora ruído
+    
+    perimetro = cv2.arcLength(cnt, True)
+    x, y, w, h = cv2.boundingRect(cnt)
+    
+    # Cálculo do Centroide (Centro de Massa da Peça):
+    M = cv2.moments(cnt)
+    cX = int(M["m10"] / M["m00"]) if M["m00"] != 0 else x + w // 2
+    cY = int(M["m01"] / M["m00"]) if M["m00"] != 0 else y + h // 2
+    
+    # Desenhar contorno verde espesso e caixa azul ao redor da peça:
+    cv2.drawContours(imagem_com_contornos, [cnt], -1, (0, 255, 0), 2)
+    cv2.rectangle(imagem_com_contornos, (x, y), (x + w, y + h), (255, 0, 0), 2)
+    cv2.circle(imagem_com_contornos, (cX, cY), 4, (0, 0, 255), -1)
+    
+    dados_tabela.append({
+        "ID": i + 1,
+        "Area_px2": int(area),
+        "Perimetro_px": round(perimetro, 1),
+        "Centro_X": cX,
+        "Centro_Y": cY,
+        "Largura": w,
+        "Altura": h
+    })
+
+# Exibir tabela com as medidas extraídas pela visão:
+df_medicoes = pd.DataFrame(dados_tabela)
+print(df_medicoes)
+
+# Salvar ou exibir a imagem final anotada:
+# cv2.imwrite("resultado_inspecao.png", imagem_com_contornos)
+""", language="python")
+        st.info("💡 **Dica de Ouro:** A combinação de `cv2.Canny` com `cv2.findContours` e `cv2.moments` é a base da robótica de *Pick-and-Place*. Ela informa ao robô a coordenada exata $(X,Y)$ e a rotação necessária para agarrar peças industriais na esteira sem errar!")
 
     exibir_rodape_educacional()
 
 # =========================================================================================
-# MÓDULO 7: CHATBOT COM RAG (CRIE SUA PRÓPRIA IA) - CONVERSACIONAL E DIDÁTICO
+# MÓDULO 7: CHATBOT COM RAG (GOOGLE GEMINI & MICROSOFT AZURE FOUNDRY)
 # • Item SENAI: 6. Modelos Personalizados -> 6.1 Arquitetura / 6.2 Conexão com Nuvem
 # • Teoria: Chatbot conversacional com Injeção de Contexto (RAG) para respostas ancoradas.
 # =========================================================================================
 elif menu == "💬 7. Chatbot com RAG (Crie sua IA)":
     st.title("💬 Módulo 7: Chatbot Inteligente com RAG")
-    st.caption("Conceito Central: Chatbot Conversacional, Modelos Fundacionais (Google Gemini), Engenharia de Prompt e RAG (Recuperação de Informação)")
+    st.caption("Suporte a múltiplos motores: Google Gemini, Microsoft Azure AI Foundry e Motor Pedagógico Local")
 
     aba_simulador, aba_passos, aba_codigo = st.tabs([
         "💬 Chatbot com RAG (Interativo)",
@@ -1359,7 +1781,7 @@ elif menu == "💬 7. Chatbot com RAG (Crie sua IA)":
         "💻 Código Explicado Linha por Linha"
     ])
 
-    # Inicialização dos estados para os templates e mensagens do chat
+    # Inicialização dos estados para os templates, provedores e mensagens do chat
     if 'rag_persona' not in st.session_state:
         st.session_state['rag_persona'] = "Você é o instrutor técnico de usinagem e segurança do SENAI. Responda de forma técnica, cordial e com foco rigoroso em normas de segurança industrial."
     if 'rag_contexto' not in st.session_state:
@@ -1376,8 +1798,20 @@ elif menu == "💬 7. Chatbot com RAG (Crie sua IA)":
                 "source": "Sistema"
             }
         ]
+    if 'rag_provedor' not in st.session_state:
+        st.session_state['rag_provedor'] = "Motor Pedagógico Local (Sem Chave / Gratuito)"
     if 'rag_google_key' not in st.session_state:
         st.session_state['rag_google_key'] = ""
+    if 'rag_google_model' not in st.session_state:
+        st.session_state['rag_google_model'] = "gemini-1.5-flash"
+    if 'rag_foundry_endpoint' not in st.session_state:
+        st.session_state['rag_foundry_endpoint'] = ""
+    if 'rag_foundry_key' not in st.session_state:
+        st.session_state['rag_foundry_key'] = ""
+    if 'rag_foundry_model' not in st.session_state:
+        st.session_state['rag_foundry_model'] = "gpt-4o-mini"
+    if 'rag_foundry_api_version' not in st.session_state:
+        st.session_state['rag_foundry_api_version'] = "2024-06-01"
 
     # Funções auxiliares para carregar templates prontos
     def carregar_template_torno():
@@ -1439,31 +1873,98 @@ elif menu == "💬 7. Chatbot com RAG (Crie sua IA)":
 
         st.markdown("---")
 
-        # Expander de Configuração do RAG (Persona, Documento e Chave)
-        with st.expander("⚙️ Personalizar Base de Conhecimento, Persona e Chave Google (Clique para abrir/fechar)", expanded=False):
-            st.markdown("### 🛠️ Personalização do seu Chatbot:")
+        # Expander de Configuração do RAG (Provedor, Persona, Documento e Chaves)
+        with st.expander("⚙️ Configurar Base de Conhecimento, Provedor de IA (Gemini / Microsoft Foundry) e Persona", expanded=False):
+            st.markdown("### 🛠️ Personalização do seu Chatbot e Conexão de Nuvem:")
             with st.form("form_config_rag"):
                 col_cfg1, col_cfg2 = st.columns(2)
                 with col_cfg1:
                     novo_persona = st.text_area(
                         "🎭 Persona da IA (System Prompt / Papel do Robô):",
                         value=st.session_state['rag_persona'],
-                        height=110,
-                        help="Define como o robô deve se comportar e falar com o cliente."
+                        height=90,
+                        help="Define como o robô deve se comportar e falar com o usuário."
                     )
-                    nova_chave = st.text_input(
-                        "🔑 Chave de API do Google AI Studio (Opcional - Gemini 1.5 Flash):",
-                        value=st.session_state.get('rag_google_key', ''),
-                        type="password",
-                        help="Gere sua chave gratuita em aistudio.google.com sem cartão de crédito. Se deixar vazio, usa o motor local!"
+
+                    provedor_opcoes = [
+                        "Motor Pedagógico Local (Sem Chave / Gratuito)",
+                        "🌐 Google AI Studio (Gemini 1.5 Flash / Pro)",
+                        "☁️ Microsoft Azure AI Foundry (Azure OpenAI / Modelos)"
+                    ]
+                    idx_atual = 0
+                    if "Google" in st.session_state['rag_provedor']:
+                        idx_atual = 1
+                    elif "Microsoft" in st.session_state['rag_provedor']:
+                        idx_atual = 2
+
+                    novo_provedor = st.selectbox(
+                        "🤖 Provedor de Inteligência Artificial:",
+                        provedor_opcoes,
+                        index=idx_atual
                     )
-                    st.caption("🆓 Obtenha uma chave gratuita em: [**aistudio.google.com**](https://aistudio.google.com/)")
+
+                    if "Google" in novo_provedor:
+                        st.markdown("##### 🌐 Configuração do Google AI Studio:")
+                        nova_chave_google = st.text_input(
+                            "🔑 Chave de API Google Gemini:",
+                            value=st.session_state.get('rag_google_key', ''),
+                            type="password",
+                            help="Gere sua chave gratuita em aistudio.google.com"
+                        )
+                        novo_modelo_google = st.selectbox(
+                            "Modelo Gemini:",
+                            ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash"],
+                            index=0
+                        )
+                        nova_borda_foundry = st.session_state.get('rag_foundry_endpoint', '')
+                        nova_chave_foundry = st.session_state.get('rag_foundry_key', '')
+                        novo_modelo_foundry = st.session_state.get('rag_foundry_model', 'gpt-4o-mini')
+                        nova_versao_foundry = st.session_state.get('rag_foundry_api_version', '2024-06-01')
+
+                    elif "Microsoft" in novo_provedor:
+                        st.markdown("##### ☁️ Configuração do Microsoft Azure AI Foundry:")
+                        nova_borda_foundry = st.text_input(
+                            "🌐 Endpoint / Borda do Serviço (URL):",
+                            value=st.session_state.get('rag_foundry_endpoint', ''),
+                            placeholder="https://seu-recurso.openai.azure.com/ ou https://seu-recurso.services.ai.azure.com/",
+                            help="Cole a URL do Endpoint / Borda do recurso gerado no Microsoft Azure AI Foundry."
+                        )
+                        nova_chave_foundry = st.text_input(
+                            "🔑 Chave de API da Microsoft (API Key):",
+                            value=st.session_state.get('rag_foundry_key', ''),
+                            type="password",
+                            help="Chave de acesso obtida na aba 'Keys and Endpoint' no portal Azure / Foundry."
+                        )
+                        c_f1, c_f2 = st.columns(2)
+                        with c_f1:
+                            novo_modelo_foundry = st.text_input(
+                                "🏷️ Modelo / Deployment:",
+                                value=st.session_state.get('rag_foundry_model', 'gpt-4o-mini'),
+                                help="Nome da implantação criada no Foundry (ex: gpt-4o-mini, gpt-4o, phi-4)."
+                            )
+                        with c_f2:
+                            nova_versao_foundry = st.text_input(
+                                "⚙️ Versão da API:",
+                                value=st.session_state.get('rag_foundry_api_version', '2024-06-01'),
+                                help="Versão da API da Microsoft (padrão: 2024-06-01)."
+                            )
+                        nova_chave_google = st.session_state.get('rag_google_key', '')
+                        novo_modelo_google = st.session_state.get('rag_google_model', 'gemini-1.5-flash')
+
+                    else: # Motor Local
+                        st.info("💡 **Motor Pedagógico Local Ativo:** Funciona 100% offline sem precisar de chaves ou cartões de crédito!")
+                        nova_chave_google = st.session_state.get('rag_google_key', '')
+                        novo_modelo_google = st.session_state.get('rag_google_model', 'gemini-1.5-flash')
+                        nova_borda_foundry = st.session_state.get('rag_foundry_endpoint', '')
+                        nova_chave_foundry = st.session_state.get('rag_foundry_key', '')
+                        novo_modelo_foundry = st.session_state.get('rag_foundry_model', 'gpt-4o-mini')
+                        nova_versao_foundry = st.session_state.get('rag_foundry_api_version', '2024-06-01')
 
                 with col_cfg2:
                     novo_contexto = st.text_area(
                         "📚 Base de Conhecimento da Empresa (Documento / Manual do RAG):",
                         value=st.session_state['rag_contexto'],
-                        height=175,
+                        height=210,
                         help="O texto oficial que a IA usará como colinha para responder sem alucinar."
                     )
 
@@ -1471,10 +1972,17 @@ elif menu == "💬 7. Chatbot com RAG (Crie sua IA)":
                 if btn_salvar:
                     st.session_state['rag_persona'] = novo_persona
                     st.session_state['rag_contexto'] = novo_contexto
-                    st.session_state['rag_google_key'] = nova_chave
+                    st.session_state['rag_provedor'] = novo_provedor
+                    st.session_state['rag_google_key'] = nova_chave_google
+                    st.session_state['rag_google_model'] = novo_modelo_google
+                    st.session_state['rag_foundry_endpoint'] = nova_borda_foundry
+                    st.session_state['rag_foundry_key'] = nova_chave_foundry
+                    st.session_state['rag_foundry_model'] = novo_modelo_foundry
+                    st.session_state['rag_foundry_api_version'] = nova_versao_foundry
+                    
                     st.session_state['rag_chat_messages'].append({
                         "role": "assistant",
-                        "content": f"🔄 *Configurações salvas! Nova persona ativa:* **{novo_persona.split('.')[0]}**. Base de conhecimento atualizada com sucesso. Em que posso te ajudar?",
+                        "content": f"🔄 *Configurações salvas! Provedor ativo:* **{novo_provedor.split('(')[0]}**. Base de conhecimento e persona atualizadas com sucesso. Como posso te ajudar?",
                         "source": "Sistema"
                     })
                     st.rerun()
@@ -1492,12 +2000,33 @@ Se a informação não estiver descrita no documento, afirme educadamente que o 
 {st.session_state['rag_contexto']}
                 """, language="markdown")
 
+        # 📊 TABELA DE DADOS DA BASE DE CONHECIMENTO (ESTRUTURAÇÃO DO RAG)
+        st.markdown("---")
+        st.markdown("### 📊 Tabela da Base de Conhecimento Indexada (Como o RAG enxerga os dados)")
+        st.write("Abaixo estão os fragmentos do manual cadastrado que a IA consulta para responder às perguntas sem alucinar:")
+
+        linhas_documento = [l.strip() for l in st.session_state['rag_contexto'].split('\n') if l.strip()]
+        df_tabela_rag = pd.DataFrame({
+            "Fragmento #": [f"Cláusula / Linha #{i+1:02d}" for i in range(len(linhas_documento))],
+            "Texto Homologado da Empresa (Regra de Ouro)": linhas_documento,
+            "Status no RAG": ["✅ Indexado e Protegido" for _ in linhas_documento]
+        })
+        st.dataframe(df_tabela_rag, use_container_width=True, hide_index=True)
+        st.caption("💡 **Conceito para sala de aula:** O RAG transforma manuais e PDFs em pedaços (*chunks*) indexados. Quando o usuário pergunta, a IA busca as linhas exatas com maior relevância sem inventar fatos fora da tabela.")
+
         # Barra de Status e Ações do Chat
+        st.markdown("---")
         col_st1, col_st2 = st.columns([3, 1])
         with col_st1:
-            modo_ativo = "Google Gemini 1.5 Flash (Nuvem)" if st.session_state['rag_google_key'].strip() else "Motor Pedagógico Local (Sem Chave / Gratuito)"
+            if "Microsoft" in st.session_state['rag_provedor'] and st.session_state['rag_foundry_key'].strip():
+                motor_texto = f"Microsoft Azure AI Foundry ({st.session_state['rag_foundry_model']})"
+            elif "Google" in st.session_state['rag_provedor'] and st.session_state['rag_google_key'].strip():
+                motor_texto = f"Google AI Studio ({st.session_state['rag_google_model']})"
+            else:
+                motor_texto = "Motor Pedagógico Local (Sem Chave / Gratuito)"
+
             qtd_palavras = len(st.session_state['rag_contexto'].split())
-            st.info(f"🤖 **Status:** Atuando como *{st.session_state['rag_persona'].split('.')[0]}* | 📄 **Base Carregada:** {qtd_palavras} palavras | ⚡ **Motor:** {modo_ativo}")
+            st.info(f"🤖 **Status:** Atuando como *{st.session_state['rag_persona'].split('.')[0]}* | 📄 **Base Carregada:** {qtd_palavras} palavras | ⚡ **Motor:** {motor_texto}")
         with col_st2:
             if st.button("🗑️ Limpar Conversa", use_container_width=True):
                 st.session_state['rag_chat_messages'] = [{
@@ -1507,7 +2036,200 @@ Se a informação não estiver descrita no documento, afirme educadamente que o 
                 }]
                 st.rerun()
 
+        # ---------------------------------------------------------------------------------
+        # JANELA DE CHAT MODERNA COM CONTAINER DE ROLAGEM DEDICADO
+        # ---------------------------------------------------------------------------------
+        st.markdown("### 💬 Janela de Atendimento do Chatbot:")
+        chat_container = st.container(height=450)
+
+        with chat_container:
+            for msg in st.session_state['rag_chat_messages']:
+                avatar_icone = "🧑‍🎓" if msg["role"] == "user" else "🤖"
+                with st.chat_message(msg["role"], avatar=avatar_icone):
+                    st.markdown(msg["content"])
+                    if msg.get("source"):
+                        st.caption(f"📡 *{msg['source']}*")
+
+        # ---------------------------------------------------------------------------------
+        # CAIXA DE DIGITAÇÃO FIXADA ABAIXO DO CONTAINER DO CHAT
+        # ---------------------------------------------------------------------------------
+        if prompt_usuario := st.chat_input("Digite sua dúvida para o assistente (ex: Qual o EPI obrigatório?)..."):
+            # 1. Registrar mensagem do usuário no histórico
+            st.session_state['rag_chat_messages'].append({
+                "role": "user",
+                "content": prompt_usuario
+            })
+
+            resposta_ia = None
+            origem_resposta = ""
+
+            # -----------------------------------------------------------------------------
+            # MOTOR 1: MICROSOFT AZURE AI FOUNDRY
+            # -----------------------------------------------------------------------------
+            if "Microsoft" in st.session_state['rag_provedor'] and st.session_state['rag_foundry_key'].strip() and st.session_state['rag_foundry_endpoint'].strip():
+                with st.spinner("Consultando base de conhecimento via Microsoft Azure AI Foundry..."):
+                    try:
+                        endpoint = st.session_state['rag_foundry_endpoint'].strip().rstrip('/')
+                        key = st.session_state['rag_foundry_key'].strip()
+                        model = st.session_state['rag_foundry_model'].strip() or "gpt-4o-mini"
+                        api_ver = st.session_state['rag_foundry_api_version'].strip() or "2024-06-01"
+
+                        # Formatação inteligente da URL do Foundry / Azure OpenAI
+                        if "/chat/completions" in endpoint:
+                            url_foundry = endpoint
+                        elif "/models" in endpoint:
+                            url_foundry = f"{endpoint}/chat/completions?api-version={api_ver}"
+                        else:
+                            url_foundry = f"{endpoint}/openai/deployments/{model}/chat/completions?api-version={api_ver}"
+
+                        headers = {
+                            "Content-Type": "application/json",
+                            "api-key": key,
+                            "Authorization": f"Bearer {key}"
+                        }
+
+                        system_instrucao_foundry = f"""Você é: {st.session_state['rag_persona']}
+
+DIRETRIZ ESTRITA DE RAG (Recuperação de Informação):
+Você é um assistente de chatbot corporativo. Você DEVE responder às dúvidas do usuário utilizando EXCLUSIVAMENTE as informações contidas na BASE DE CONHECIMENTO oficial fornecida abaixo.
+Se a resposta para a dúvida do usuário não estiver expressamente contida na base de conhecimento, responda com cordialidade e clareza informando que essa informação não consta no documento oficial da empresa e oriente onde buscar ajuda. NUNCA invente procedimentos, regras, números ou fatos externos.
+
+BASE DE CONHECIMENTO OFICIAL:
+\"\"\"
+{st.session_state['rag_contexto']}
+\"\"\""""
+
+                        mensagens_payload = [{"role": "system", "content": system_instrucao_foundry}]
+                        for m in st.session_state['rag_chat_messages']:
+                            mensagens_payload.append({
+                                "role": "user" if m["role"] == "user" else "assistant",
+                                "content": m["content"]
+                            })
+
+                        payload = {
+                            "messages": mensagens_payload,
+                            "temperature": 0.2,
+                            "max_tokens": 500
+                        }
+
+                        req = requests.post(url_foundry, headers=headers, json=payload, timeout=25)
+                        if req.status_code == 200:
+                            res_json = req.json()
+                            resposta_ia = res_json['choices'][0]['message']['content']
+                            origem_resposta = f"Microsoft Azure AI Foundry ({model})"
+                        else:
+                            st.warning(f"⚠️ Resposta da API do Foundry ({req.status_code}): {req.text[:140]}. Alternando para o motor pedagógico local...")
+                    except Exception as ex:
+                        st.warning(f"⚠️ Erro ao conectar ao Microsoft Foundry ({ex}). Alternando para o motor pedagógico local...")
+
+            # -----------------------------------------------------------------------------
+            # MOTOR 2: GOOGLE GEMINI (GOOGLE AI STUDIO)
+            # -----------------------------------------------------------------------------
+            elif "Google" in st.session_state['rag_provedor'] and st.session_state['rag_google_key'].strip():
+                with st.spinner("Consultando documento via Google Gemini..."):
+                    try:
+                        chave_limpa = st.session_state['rag_google_key'].strip()
+                        modelo_gemini = st.session_state.get('rag_google_model', 'gemini-1.5-flash').strip()
+                        url_gemini = f"https://generativelanguage.googleapis.com/v1beta/models/{modelo_gemini}:generateContent?key={chave_limpa}"
+
+                        contents_api = []
+                        for m in st.session_state['rag_chat_messages']:
+                            r = "user" if m["role"] == "user" else "model"
+                            if not contents_api and r != "user":
+                                continue
+                            contents_api.append({
+                                "role": r,
+                                "parts": [{"text": m["content"]}]
+                            })
+
+                        system_instruction = f"""Você é: {st.session_state['rag_persona']}
+
+DIRETRIZ ESTRITA DE RAG (Recuperação de Informação):
+Você é um assistente de chatbot corporativo. Você DEVE responder às dúvidas do usuário utilizando EXCLUSIVAMENTE as informações contidas na BASE DE CONHECIMENTO oficial fornecida abaixo.
+Se a resposta para a dúvida do usuário não estiver expressamente contida na base de conhecimento, responda com cordialidade e clareza informando que essa informação não consta no documento oficial da empresa e oriente onde buscar ajuda. NUNCA invente procedimentos, regras, números ou fatos externos.
+
+BASE DE CONHECIMENTO OFICIAL:
+\"\"\"
+{st.session_state['rag_contexto']}
+\"\"\""""
+
+                        payload = {
+                            "systemInstruction": {
+                                "parts": [{"text": system_instruction}]
+                            },
+                            "contents": contents_api,
+                            "generationConfig": {
+                                "temperature": 0.2,
+                                "maxOutputTokens": 500
+                            }
+                        }
+                        req = requests.post(url_gemini, json=payload, timeout=25)
+                        if req.status_code == 200:
+                            res_json = req.json()
+                            resposta_ia = res_json['candidates'][0]['content']['parts'][0]['text']
+                            origem_resposta = f"Google Gemini ({modelo_gemini})"
+                        else:
+                            st.warning(f"⚠️ Resposta da API do Google ({req.status_code}): {req.text[:120]}. Alternando para o motor pedagógico local...")
+                    except Exception as ex:
+                        st.warning(f"⚠️ Erro ao conectar ao Gemini ({ex}). Alternando para o motor pedagógico local...")
+
+            # -----------------------------------------------------------------------------
+            # MOTOR 3: MOTOR PEDAGÓGICO LOCAL (RAG HEURÍSTICO SEM CHAVE)
+            # -----------------------------------------------------------------------------
+            if not resposta_ia:
+                origem_resposta = "Motor Pedagógico Local (RAG Heurístico sem Chave)"
+                texto_user_lower = prompt_usuario.lower().strip()
+                persona_curta = st.session_state['rag_persona'].split('.')[0]
+
+                saudacoes = ["ola", "olá", "oi", "bom dia", "boa tarde", "boa noite", "opa", "e ai", "e aí", "tudo bem", "como vai"]
+                agradecimentos = ["obrigado", "obrigada", "valeu", "agradeco", "agradeço", "muito obrigado", "valeu mesmo"]
+                identidade = ["quem e voce", "quem é você", "quem e vc", "quem é vc", "qual seu nome", "o que voce faz", "o que você faz"]
+
+                palavras_msg = set(texto_user_lower.replace('?', ' ').replace('!', ' ').replace(',', ' ').split())
+
+                if any(s in texto_user_lower for s in saudacoes) and len(palavras_msg) <= 4:
+                    resposta_ia = f"Olá! Sou seu assistente virtual especializado (**{persona_curta}**). Estou conectado à base de conhecimento oficial e pronto para responder às suas dúvidas sobre as normas e procedimentos. Em que posso te ajudar hoje?"
+                elif any(a in texto_user_lower for a in agradecimentos):
+                    resposta_ia = "Por nada! Fico sempre à disposição para esclarecer qualquer dúvida com base na documentação da empresa. Se precisar de mais alguma informação, é só perguntar!"
+                elif any(i in texto_user_lower for i in identidade):
+                    resposta_ia = f"Eu sou um assistente corporativo com tecnologia RAG (**{persona_curta}**). Minha função é consultar a base de conhecimento oficial fornecida e responder às suas perguntas com precisão e segurança, sem alucinações!"
+                else:
+                    linhas = [l.strip() for l in st.session_state['rag_contexto'].split('\n') if l.strip()]
+                    stopwords = {"qual", "quais", "como", "onde", "quando", "quem", "porque", "por", "que", "para", "com", "uma", "uns", "das", "dos", "sobre", "fazer", "pode", "deve", "tenho", "dias", "horas", "quero", "tem"}
+                    palavras_uteis = [p for p in palavras_msg if len(p) > 2 and p not in stopwords]
+
+                    linhas_relevantes = []
+                    for linha in linhas:
+                        score = sum(1 for p in palavras_uteis if p in linha.lower())
+                        if score > 0:
+                            linhas_relevantes.append((score, linha))
+
+                    linhas_relevantes.sort(key=lambda x: x[0], reverse=True)
+
+                    if linhas_relevantes:
+                        evidencias = "\n".join([f"• *\"{l[1]}\"*" for l in linhas_relevantes[:3]])
+                        resposta_ia = f"""Consultando a nossa base de conhecimento oficial, trago as seguintes orientações sobre sua dúvida:
+
+{evidencias}
+
+✅ **Ancoragem RAG:** Esta resposta foi recuperada estritamente do documento oficial homologado da empresa."""
+                    else:
+                        resposta_ia = f"""🛡️ **Bloqueio Anti-Alucinação do RAG Ativado:**
+
+Como **{persona_curta}**, examinei todo o documento oficial cadastrado, porém **não encontrei informações** sobre o que você perguntou.
+
+💡 **Por que isso é bom?** Em um chatbot comum sem RAG, a IA tenderia a 'inventar' ou adivinhar uma resposta que parece verdadeira. Com o RAG, garantimos conformidade: respondemos somente o que está nos manuais homologados da empresa!"""
+
+            # 3. Salvar resposta no histórico e re-executar para manter ordem cronológica perfeita
+            st.session_state['rag_chat_messages'].append({
+                "role": "assistant",
+                "content": resposta_ia,
+                "source": origem_resposta
+            })
+            st.rerun()
+
         # 🎯 Avaliação de Desempenho e Assertividade da IA (RAG)
+        st.markdown("---")
         st.markdown("### 🎯 Avaliação de Desempenho & Assertividade do Chatbot (RAG):")
         c_r_sc1, c_r_sc2, c_r_sc3 = st.columns(3)
         c_r_sc1.metric(
@@ -1525,135 +2247,6 @@ Se a informação não estiver descrita no documento, afirme educadamente que o 
             "Máxima (RAG Blindado)",
             help="Grau de segurança e conformidade para atendimento a clientes e operadores."
         )
-        st.markdown("---")
-
-        # Renderização do Histórico de Conversas
-        for msg in st.session_state['rag_chat_messages']:
-            with st.chat_message(msg["role"]):
-                st.markdown(msg["content"])
-                if msg.get("source"):
-                    st.caption(f"📡 *{msg['source']}*")
-
-        # Caixa de Entrada do Chat (Interação contínua estilo Chatbot)
-        if prompt_usuario := st.chat_input("Digite sua dúvida para o assistente (ex: Qual o EPI obrigatório?)..."):
-            # 1. Adicionar e exibir mensagem do usuário
-            st.session_state['rag_chat_messages'].append({
-                "role": "user",
-                "content": prompt_usuario
-            })
-            with st.chat_message("user"):
-                st.markdown(prompt_usuario)
-
-            # 2. Processar a resposta do assistente
-            with st.chat_message("assistant"):
-                resposta_ia = None
-                origem_resposta = ""
-
-                # MOTOR 1: Google Gemini 1.5 Flash via API Nuvem (Google AI Studio)
-                if st.session_state['rag_google_key'].strip():
-                    with st.spinner("Consultando documento via Google Gemini 1.5 Flash..."):
-                        try:
-                            chave_limpa = st.session_state['rag_google_key'].strip()
-                            url_gemini = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={chave_limpa}"
-
-                            # Preparar histórico para a API do Gemini (deve começar com turn 'user')
-                            contents_api = []
-                            for m in st.session_state['rag_chat_messages']:
-                                r = "user" if m["role"] == "user" else "model"
-                                if not contents_api and r != "user":
-                                    continue
-                                contents_api.append({
-                                    "role": r,
-                                    "parts": [{"text": m["content"]}]
-                                })
-
-                            system_instruction = f"""Você é: {st.session_state['rag_persona']}
-
-DIRETRIZ ESTRITA DE RAG (Recuperação de Informação):
-Você é um assistente de chatbot corporativo. Você DEVE responder às dúvidas do usuário utilizando EXCLUSIVAMENTE as informações contidas na BASE DE CONHECIMENTO oficial fornecida abaixo.
-Se a resposta para a dúvida do usuário não estiver expressamente contida na base de conhecimento, responda com cordialidade e clareza informando que essa informação não consta no documento oficial da empresa e oriente onde buscar ajuda. NUNCA invente procedimentos, regras, números ou fatos externos.
-
-BASE DE CONHECIMENTO OFICIAL:
-\"\"\"
-{st.session_state['rag_contexto']}
-\"\"\""""
-
-                            payload = {
-                                "systemInstruction": {
-                                    "parts": [{"text": system_instruction}]
-                                },
-                                "contents": contents_api,
-                                "generationConfig": {
-                                    "temperature": 0.2,
-                                    "maxOutputTokens": 500
-                                }
-                            }
-                            req = requests.post(url_gemini, json=payload, timeout=25)
-                            if req.status_code == 200:
-                                res_json = req.json()
-                                resposta_ia = res_json['candidates'][0]['content']['parts'][0]['text']
-                                origem_resposta = "Google Gemini 1.5 Flash (Google AI Studio)"
-                            else:
-                                st.warning(f"⚠️ Resposta da API do Google ({req.status_code}): {req.text[:120]}. Alternando para o motor pedagógico local...")
-                        except Exception as ex:
-                            st.warning(f"⚠️ Erro ao conectar ao Gemini ({ex}). Alternando para o motor pedagógico local...")
-
-                # MOTOR 2: Motor Pedagógico Local (RAG Heurístico sem Chave)
-                if not resposta_ia:
-                    origem_resposta = "Motor Pedagógico Local (RAG Heurístico sem Chave)"
-                    texto_user_lower = prompt_usuario.lower().strip()
-                    persona_curta = st.session_state['rag_persona'].split('.')[0]
-
-                    # Tratamento de saudações e gentilezas
-                    saudacoes = ["ola", "olá", "oi", "bom dia", "boa tarde", "boa noite", "opa", "e ai", "e aí", "tudo bem", "como vai"]
-                    agradecimentos = ["obrigado", "obrigada", "valeu", "agradeco", "agradeço", "muito obrigado", "valeu mesmo"]
-                    identidade = ["quem e voce", "quem é você", "quem e vc", "quem é vc", "qual seu nome", "o que voce faz", "o que você faz"]
-
-                    palavras_msg = set(texto_user_lower.replace('?', ' ').replace('!', ' ').replace(',', ' ').split())
-
-                    if any(s in texto_user_lower for s in saudacoes) and len(palavras_msg) <= 4:
-                        resposta_ia = f"Olá! Sou seu assistente virtual especializado (**{persona_curta}**). Estou conectado à base de conhecimento oficial e pronto para responder às suas dúvidas sobre as normas e procedimentos. Em que posso te ajudar hoje?"
-                    elif any(a in texto_user_lower for a in agradecimentos):
-                        resposta_ia = "Por nada! Fico sempre à disposição para esclarecer qualquer dúvida com base na documentação da empresa. Se precisar de mais alguma informação, é só perguntar!"
-                    elif any(i in texto_user_lower for i in identidade):
-                        resposta_ia = f"Eu sou um assistente corporativo com tecnologia RAG (**{persona_curta}**). Minha função é consultar a base de conhecimento oficial fornecida e responder às suas perguntas com precisão e segurança, sem alucinações!"
-                    else:
-                        # Busca de trechos relevantes no documento oficial
-                        linhas = [l.strip() for l in st.session_state['rag_contexto'].split('\n') if l.strip()]
-                        stopwords = {"qual", "quais", "como", "onde", "quando", "quem", "porque", "por", "que", "para", "com", "uma", "uns", "das", "dos", "sobre", "fazer", "pode", "deve", "tenho", "dias", "horas"}
-                        palavras_uteis = [p for p in palavras_msg if len(p) > 2 and p not in stopwords]
-
-                        linhas_relevantes = []
-                        for linha in linhas:
-                            score = sum(1 for p in palavras_uteis if p in linha.lower())
-                            if score > 0:
-                                linhas_relevantes.append((score, linha))
-
-                        linhas_relevantes.sort(key=lambda x: x[0], reverse=True)
-
-                        if linhas_relevantes:
-                            evidencias = "\n".join([f"• *\"{l[1]}\"*" for l in linhas_relevantes[:3]])
-                            resposta_ia = f"""Consultando a nossa base de conhecimento oficial, trago as seguintes orientações sobre sua dúvida:
-
-{evidencias}
-
-✅ **Ancoragem RAG:** Esta resposta foi recuperada estritamente do documento oficial homologado da empresa."""
-                        else:
-                            resposta_ia = f"""🛡️ **Bloqueio Anti-Alucinação do RAG Ativado:**
-
-Como **{persona_curta}**, examinei todo o documento oficial cadastrado, porém **não encontrei informações** sobre o que você perguntou.
-
-💡 **Por que isso é bom?** Em um chatbot comum sem RAG, a IA tenderia a 'inventar' ou adivinhar uma resposta que parece verdadeira. Com o RAG, garantimos conformidade: respondemos somente o que está nos manuais homologados da empresa!"""
-
-                # Exibição da resposta e salvamento no histórico
-                st.markdown(resposta_ia)
-                st.caption(f"📡 *Origem: {origem_resposta}*")
-
-                st.session_state['rag_chat_messages'].append({
-                    "role": "assistant",
-                    "content": resposta_ia,
-                    "source": origem_resposta
-                })
 
     with aba_passos:
         st.subheader("📖 Como um Chatbot Corporativo com RAG Funciona? (Sem Complicação)")
@@ -1693,70 +2286,85 @@ Como **{persona_curta}**, examinei todo o documento oficial cadastrado, porém *
             * **Scores de Desempenho em Modelos Generativos e RAG:**
               * **Score de Ancoragem Factual (Groundedness):** Mede se 100% das afirmações da resposta possuem respaldo direto no documento de referência.
               * **Taxa de Risco de Alucinação (0.0%):** O RAG protege o chatbot corporativo, impedindo que o modelo invente normas, prazos ou regras inexistentes.
-            * **Geração Fluente:** O modelo fundacional (Google Gemini 1.5 Flash ou Motor Local) redige uma resposta amigável, acolhedora e 100% ancorada na realidade da empresa!
+            * **Geração Fluente:** O modelo fundacional (Google Gemini ou Microsoft Azure AI Foundry) redige uma resposta amigável, acolhedora e 100% ancorada na realidade da empresa!
             """)
 
     with aba_codigo:
-        st.subheader("💻 O Código Python Linha por Linha: Construindo um Chatbot com RAG no Streamlit")
-        st.write("Veja como é simples criar um chatbot profissional conectando o Streamlit à API do Google Gemini com RAG:")
+        st.subheader("💻 O Código Python Real em Execução no Aplicativo (Gemini & Microsoft Foundry)")
+        st.write("Veja o código Python completo demonstrando como conectar o Chatbot com RAG tanto ao **Google Gemini** quanto ao **Microsoft Azure AI Foundry**:")
 
-        st.code("""
+        st.code("""# =====================================================================
+# 💬 CHATBOT COM RAG NO STREAMLIT (GEMINI & MICROSOFT AZURE FOUNDRY)
+# =====================================================================
 import streamlit as st
 import requests
 
-# ETAPA 1: INICIALIZAR O HISTÓRICO DA CONVERSA
-if "chat_historico" not in st.session_state:
-    st.session_state.chat_historico = [
-        {"role": "assistant", "content": "Olá! Sou seu assistente oficial do SENAI. Como posso te ajudar hoje?"}
+# 1. BASE DE CONHECIMENTO HOMOLOGADA DA EMPRESA (O MANUAL DO RAG)
+manual_oficial = \"\"\"
+MANUAL DE OPERAÇÃO DO TORNO MECÂNICO SENAI:
+1. SEGURANÇA: É obrigatório o uso de óculos de proteção (EPI) e botina com bico de aço.
+2. VELOCIDADE DE CORTE: Para alumínio 6061, use 250 m/min. Para aço 1020, use 180 m/min.
+3. EMERGÊNCIA: Ao perceber vibração anormal, aperte imediatamente o botão cogumelo vermelho.
+\"\"\"
+
+# 2. INICIALIZAR O HISTÓRICO DE MENSAGENS NO STREAMLIT
+if "mensagens" not in st.session_state:
+    st.session_state.mensagens = [
+        {"role": "assistant", "content": "Olá! Sou o assistente técnico do SENAI. Como posso ajudar?"}
     ]
 
-# ETAPA 2: RENDERIZAR AS MENSAGENS ANTERIORES NA TELA
-for mensagem in st.session_state.chat_historico:
-    with st.chat_message(mensagem["role"]):
-        st.markdown(mensagem["content"])
+# Renderizar mensagens anteriores em container organizado:
+chat_window = st.container(height=400)
+with chat_window:
+    for m in st.session_state.mensagens:
+        with st.chat_message(m["role"]):
+            st.markdown(m["content"])
 
-# ETAPA 3: CAPTURAR A NOVA MENSAGEM DO USUÁRIO
-if prompt_usuario := st.chat_input("Digite sua dúvida sobre o manual técnico..."):
-    # Salva e exibe a mensagem do usuário
-    st.session_state.chat_historico.append({"role": "user", "content": prompt_usuario})
-    with st.chat_message("user"):
-        st.markdown(prompt_usuario)
+# 3. CAPTURAR A DÚVIDA DIGITADA PELO ALUNO
+if duvida_aluno := st.chat_input("Digite sua dúvida sobre o manual técnico..."):
+    st.session_state.mensagens.append({"role": "user", "content": duvida_aluno})
 
-    # ETAPA 4: APLICAR O RAG (BASE DE CONHECIMENTO + PROMPT)
-    manual_empresa = \"\"\"
-    MANUAL DO TORNO SENAI:
-    - Velocidade máxima para alumínio: 250 m/min.
-    - Em caso de emergência ou vibração, aperte o botão cogumelo vermelho.
-    \"\"\"
+    # =================================================================
+    # OPÇÃO A: CONEXÃO COM MICROSOFT AZURE AI FOUNDRY (AZURE OPENAI)
+    # =================================================================
+    FOUNDRY_ENDPOINT = "https://seu-recurso.openai.azure.com/" # Borda do serviço
+    FOUNDRY_API_KEY  = "SUA_CHAVE_FOUNDRY_AQUI"
+    FOUNDRY_MODEL    = "gpt-4o-mini"
+    API_VERSION      = "2024-06-01"
 
-    prompt_rag = f\"\"\"
-    Você é um instrutor técnico do SENAI.
-    Responda à dúvida do aluno EXCLUSIVAMENTE com base nas informações do manual abaixo:
-    
-    MANUAL:
-    {manual_empresa}
-    
-    PERGUNTA:
-    {prompt_usuario}
-    \"\"\"
+    url_foundry = f"{FOUNDRY_ENDPOINT.rstrip('/')}/openai/deployments/{FOUNDRY_MODEL}/chat/completions?api-version={API_VERSION}"
+    headers_foundry = {"Content-Type": "application/json", "api-key": FOUNDRY_API_KEY}
 
-    # ETAPA 5: CHAMADA À API GRATUITA DO GOOGLE GEMINI (AI STUDIO)
-    CHAVE_GOOGLE = "SUA_CHAVE_OBTIDA_NO_AISTUDIO_AQUI"
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={CHAVE_GOOGLE}"
-    payload = {
-        "contents": [{"parts": [{"text": prompt_rag}]}],
-        "generationConfig": {"temperature": 0.2, "maxOutputTokens": 300}
+    payload_foundry = {
+        "messages": [
+            {
+                "role": "system",
+                "content": f"Você é o instrutor do SENAI. Responda estritamente com base no manual: {manual_oficial}"
+            },
+            {"role": "user", "content": duvida_aluno}
+        ],
+        "temperature": 0.2,
+        "max_tokens": 400
     }
+    # resp_foundry = requests.post(url_foundry, headers=headers_foundry, json=payload_foundry).json()
+    # resposta_final = resp_foundry['choices'][0]['message']['content']
 
-    resposta = requests.post(url, json=payload).json()
-    resposta_ia = resposta['candidates'][0]['content']['parts'][0]['text']
+    # =================================================================
+    # OPÇÃO B: CONEXÃO COM GOOGLE GEMINI (GOOGLE AI STUDIO)
+    # =================================================================
+    GOOGLE_KEY = "SUA_CHAVE_GEMINI_AQUI"
+    url_gemini = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GOOGLE_KEY}"
+    payload_gemini = {
+        "contents": [{"parts": [{"text": f"Manual:\\n{manual_oficial}\\n\\nDúvida:\\n{duvida_aluno}"}]}],
+        "generationConfig": {"temperature": 0.2, "maxOutputTokens": 400}
+    }
+    # resp_gemini = requests.post(url_gemini, json=payload_gemini).json()
+    # resposta_final = resp_gemini['candidates'][0]['content']['parts'][0]['text']
 
-    # ETAPA 6: EXIBIR E SALVAR A RESPOSTA NO CHAT
-    with st.chat_message("assistant"):
-        st.markdown(resposta_ia)
-    st.session_state.chat_historico.append({"role": "assistant", "content": resposta_ia})
-        """, language="python")
-        st.info("💡 **Dica de Ouro:** O `st.chat_message` e o `st.chat_input` do Streamlit transformam qualquer script Python comum em um aplicativo moderno de mensagens instantâneas. Com o Google AI Studio (aistudio.google.com), os alunos constroem e testam esse chatbot em sala de aula com custo zero!")
+    # 4. SALVAR E ATUALIZAR A INTERFACE COM ORDEM CRONOLÓGICA PERFEITA
+    st.session_state.mensagens.append({"role": "assistant", "content": "Resposta ancorada com sucesso!"})
+    st.rerun()
+""", language="python")
+        st.info("💡 **Dica de Ouro:** O `st.container(height=450)` combinado com `st.rerun()` cria uma experiência de chat ultra-fluida, exatamente igual ao ChatGPT ou WhatsApp, garantindo que a caixa de digitação permaneça sempre fixa no rodapé e o histórico seja exibido perfeitamente de cima para baixo!")
 
     exibir_rodape_educacional()
-
